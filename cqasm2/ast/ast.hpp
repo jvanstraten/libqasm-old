@@ -7,7 +7,7 @@
  */
 
 #include "node.hpp"
-#include "type.hpp"
-#include "expression.hpp"
+//#include "type.hpp"
+//#include "expression.hpp"
 
 #endif

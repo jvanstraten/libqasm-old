@@ -1,7 +1,7 @@
 %{
     #include <cstdlib>
     #include <string>
-    #include "cqasm2/ast/ast.hpp"
+    #include "cqasm2/ast/node.hpp"
     int yyerror(char const *s);
     extern int yylex(void);
     extern int yylineno;
@@ -11,67 +11,57 @@
 
 /* YYSTYPE union */
 %union {
-    char *tok;
+    char *str;
     cqasm2::ast::Node *node;
 };
 
 /* Version header */
-%token <tok> VERSION
+%token <str> VERSION
 
 /* End of line */
 %token NEWLINE
 
 /* Resource types */
-%token <tok> TYPE_QUBIT TYPE_BOOLEAN TYPE_INT TYPE_UINT
-%token <tok> TYPE_FIXED TYPE_UFIXED TYPE_FLOAT TYPE_DOUBLE
+%token TYPE_QUBIT TYPE_BOOLEAN TYPE_INT TYPE_UINT
+%token TYPE_FIXED TYPE_UFIXED TYPE_FLOAT TYPE_DOUBLE
 
 /* High-level keywords */
-%token DEF IF ELSE FOR INCLUDE GOTO
-
-/* Map statement */
-%token MAP
-
-/* Gate declaration */
-%token GATE
+%token MAP LET SET DEF IF ELSE FOR INCLUDE GOTO
 
 /* Pragma statement */
 %token PRAGMA
 
 /* Numeric literals */
-%token <tok> LIT_BOOLEAN
-%token <tok> LIT_INT_DEC LIT_INT_HEX LIT_INT_BIN
-%token <tok> LIT_UINT_DEC LIT_UINT_HEX LIT_UINT_BIN
-%token <tok> LIT_FIXED_HEX LIT_FIXED_BIN
-%token <tok> LIT_UFIXED_HEX LIT_UFIXED_BIN
-%token <tok> LIT_FLOAT
-%token <tok> LIT_DOUBLE
-%token <tok> LIT_PI
-%token <tok> LIT_EU
-%token <tok> LIT_IM
+%token <str> LIT_INT_DEC LIT_INT_HEX LIT_INT_BIN
+%token <str> LIT_UINT_DEC LIT_UINT_HEX LIT_UINT_BIN
+%token <str> LIT_FIXED_HEX LIT_FIXED_BIN
+%token <str> LIT_UFIXED_HEX LIT_UFIXED_BIN
+%token <str> LIT_FLOAT LIT_DOUBLE
+%token LIT_TRUE LIT_FALSE LIT_PI LIT_EU LIT_IM
 
 /* Matrix literals */
-%token <tok> MATRIX_OPEN MATRIX_CLOSE
+%token MATRIX_OPEN MATRIX_CLOSE
 
 /* String and JSON literals */
-%token <tok> STRING_OPEN STRING_CLOSE
-%token <tok> JSON_OPEN JSON_CLOSE
-%token <tok> APPEND APPEND_ESCAPE
+%token STRING_OPEN STRING_CLOSE
+%token JSON_OPEN JSON_CLOSE
+%token <str> STRBUILD_APPEND STRBUILD_ESCAPE
 
 /* Identifiers */
-%token <tok> IDENTIFIER
+%token <str> IDENTIFIER
 
 /* Conditional execution modifier */
-%token <tok> CDASH
+%token CDASH
 
 /* Multi-character operators */
 %token CMP_EQ CMP_NE CMP_LE CMP_GE
 %token LOGICAL_OR LOGICAL_XOR LOGICAL_AND
-%token SHIFT_LEFT SHIFT_RIGHT LOG_SHIFT_RIGHT
+%token SHIFT_LEFT SHIFT_RIGHT
 %token DIV_INT POWER
 %token ASSIGN
 
 /* Illegal tokens */
-%token <tok> BAD_RESERVED BAD_NUMBER BAD_UNTERM_STRING BAD_CHARACTER
+%token BAD_RESERVED BAD_NUMBER BAD_CHARACTER
 
 /* The > at the end of type parameterization (TYPE_PARAM) must have higher
 precedence than shifting an IDENTIFIER, or "int<3> a" would be interpreted
@@ -110,31 +100,33 @@ priority than '|' */
 /* Misc. Yacc directives */
 %error-verbose
 %locations
-%start Input
+%start cQASM2
 
 %%
 
-Newline         : NEWLINE
-                | NEWLINE Newline
+/* One or more newlines. */
+Newline         : Newline NEWLINE
+                | NEWLINE
                 ;
 
+/* Zero or more newlines. */
 OptNewline      : Newline
                 |
                 ;
 
-Type            : TYPE_QUBIT                                                    { $$ = new QubitType(); }
-                | TYPE_BOOLEAN                                                  { $$ = new QubitType(); }
-                | TYPE_INT    '<' Expression '>' %prec TYPE_PARAM               { $$ = new QubitType(); }
-                | TYPE_UINT   '<' Expression '>' %prec TYPE_PARAM               { $$ = new QubitType(); }
-                | TYPE_FIXED  '<' Expression ',' Expression '>' %prec TYPE_PARAM{ $$ = new QubitType(); }
-                | TYPE_UFIXED '<' Expression ',' Expression '>' %prec TYPE_PARAM{ $$ = new QubitType(); }
-                | TYPE_FLOAT                                                    { $$ = new QubitType(); }
-                | TYPE_DOUBLE                                                   { $$ = new QubitType(); }
+/* Type specifiers. */
+Type            : TYPE_QUBIT                                                    {  }
+                | TYPE_BOOLEAN                                                  {  }
+                | TYPE_INT    '<' Expression '>' %prec TYPE_PARAM               {  }
+                | TYPE_UINT   '<' Expression '>' %prec TYPE_PARAM               {  }
+                | TYPE_FIXED  '<' Expression ',' Expression '>' %prec TYPE_PARAM{  }
+                | TYPE_UFIXED '<' Expression ',' Expression '>' %prec TYPE_PARAM{  }
+                | TYPE_FLOAT                                                    {  }
+                | TYPE_DOUBLE                                                   {  }
                 ;
 
 /* All literals that reduce to numericals. */
-NumericLiteral  : LIT_BOOLEAN
-                | LIT_INT_DEC
+NumericLiteral  : LIT_INT_DEC
                 | LIT_INT_HEX
                 | LIT_INT_BIN
                 | LIT_UINT_DEC
@@ -146,6 +138,8 @@ NumericLiteral  : LIT_BOOLEAN
                 | LIT_UFIXED_BIN
                 | LIT_FLOAT
                 | LIT_DOUBLE
+                | LIT_TRUE
+                | LIT_FALSE
                 | LIT_PI
                 | LIT_EU
                 | LIT_IM
@@ -163,6 +157,8 @@ Expression      : NumericLiteral
                 | IDENTIFIER '(' ')' %prec '('
                 | '(' Expression ')'
                 | '(' Type ')' Expression %prec TYPECAST
+                | '(' SHIFT_LEFT Expression ')' Expression %prec TYPECAST
+                | '(' SHIFT_RIGHT Expression ')' Expression %prec TYPECAST
                 | '+' Expression %prec UPLUS
                 | '-' Expression %prec UMINUS
                 | '!' Expression
@@ -174,7 +170,6 @@ Expression      : NumericLiteral
                 | Expression '-' Expression
                 | Expression SHIFT_LEFT Expression
                 | Expression SHIFT_RIGHT Expression
-                | Expression LOG_SHIFT_RIGHT Expression
                 | Expression CMP_GE Expression
                 | Expression CMP_LE Expression
                 | Expression '>' Expression
@@ -214,16 +209,19 @@ Matrix          : MATRIX_OPEN OptNewline MatrixData OptNewline MATRIX_CLOSE
                 | '[' ExpressionList ']'
                 ;
 
-/* String and JSON syntax. */
-StringData      : StringData APPEND
-                | StringData APPEND_ESCAPE
+/* String builder. This accumulates JSON/String data, mostly
+character-by-character. */
+StringBuilder   : StringBuilder STRBUILD_APPEND
+                | StringBuilder STRBUILD_ESCAPE
                 |
                 ;
 
-String          : STRING_OPEN StringData STRING_CLOSE
+/* String literal. */
+String          : STRING_OPEN StringBuilder STRING_CLOSE
                 ;
 
-Json            : JSON_OPEN StringData JSON_CLOSE
+/* JSON literal. */
+Json            : JSON_OPEN StringBuilder JSON_CLOSE
                 ;
 
 /* Operands in cQASM can be expressions, strings (for print and error), or
@@ -231,11 +229,17 @@ matrices (for the U gate). */
 Operand         : Expression %prec BUNDLE
                 | Matrix
                 | String
+                | Json
                 ;
 
 /* List of operands. */
 OperandList     : OperandList ',' Operand
                 | Operand %prec ','
+                ;
+
+/* List of identifiers. */
+IdentifierList  : IdentifierList ',' IDENTIFIER
+                | IDENTIFIER
                 ;
 
 /* The information caried by an annotation or pragma statement. */
@@ -250,9 +254,8 @@ Pragma          : PRAGMA AnnotationData
 /* Resource declaration statament. */
 Resource        : Type IDENTIFIER
                 | Type IDENTIFIER '=' Expression
-                | Type IDENTIFIER '[' Expression ']' '=' '{' '}'
-                | Type IDENTIFIER '[' Expression ']' '=' '{' ExpressionList '}'
-                | Type IDENTIFIER '[' ']' '=' '{' ExpressionList '}'
+                | Type IDENTIFIER '[' Expression ']' '=' Expression
+                | LET IDENTIFIER '=' Expression
                 | TYPE_QUBIT NumericLiteral
                 ;
 
@@ -261,8 +264,28 @@ Mapping         : MAP Expression ',' IDENTIFIER
                 | MAP IDENTIFIER ASSIGN Expression
                 ;
 
-/* Custom gate declaration. */
-GateDecl        : GATE IDENTIFIER Matrix
+/* Resource assignments. */
+Assignment      : SET Expression '=' Expression
+                ;
+
+/* Macro subroutine definition. */
+MacroDef        : DEF IDENTIFIER '(' ')' Block
+                | DEF IDENTIFIER '(' IdentifierList ')' Block
+                | DEF IDENTIFIER '(' IdentifierList ASSIGN IdentifierList ')' Block
+                ;
+
+/* For loop macro. */
+MacroFor        : FOR IDENTIFIER '=' '[' IndexList ']' Block
+                ;
+
+/* If/else macro. */
+MacroIfElse     : IF '(' Expression ')' Block
+                | IF Block ELSE Block
+                ;
+
+/* Include statement. */
+Include         : INCLUDE String
+                ;
 
 /* Subcircuit statement. */
 Subcircuit      : '.' IDENTIFIER
@@ -308,29 +331,39 @@ Bundle          : SLParGateList
                 | '{' OptNewline CBParGateList OptNewline '}'
                 ;
 
+/* Any of the supported statements. */
 Statement       : Pragma
                 | Resource
                 | Mapping
-                | GateDecl
+                | Assignment
+                | MacroDef
+                | MacroFor
+                | MacroIfElse
+                | Include
                 | Subcircuit
                 | Label
-            /*  | StaticIfElse */
-            /*  | StaticFor */
-            /*  | StaticDef */
-            /*  | StaticInclude */
                 | Bundle
                 | error                                                         { yyrecovered = true; }
                 ;
 
+/* Statement with annotations attached to it. */
 AnnotStatement  : AnnotStatement '@' AnnotationData
                 | Statement
                 ;
 
-Statements      : Statements AnnotStatement Newline
-                |
+/* List of one or more statements. */
+Statements      : Statements Newline AnnotStatement
+                | AnnotStatement
                 ;
 
-Input           : VERSION Newline Statements
+/* Block of code; zero or more statements. */
+Block           : '{' OptNewline Statements OptNewline '}'
+                | '{' OptNewline '}'
+                ;
+
+/* Toplevel. */
+cQASM2          : OptNewline VERSION Newline Statements OptNewline
+                | OptNewline VERSION OptNewline
                 ;
 
 

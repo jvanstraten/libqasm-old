@@ -33,10 +33,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 file(GLOB_RECURSE LIBCQASM2_SRCS
-  "ast/*.cpp"
-  "ast/*.hpp"
-  "semantic/*.cpp"
-  "semantic/*.hpp"
+  "ast/node.cpp"
+  "ast/node.hpp"
+#  "ast/*.cpp"
+#  "ast/*.hpp"
+#  "semantic/*.cpp"
+#  "semantic/*.hpp"
 )
 
 add_library(

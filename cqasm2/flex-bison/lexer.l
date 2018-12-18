@@ -11,9 +11,12 @@
     #define LOCATION_STEP \
         yylloc.first_column = yylloc.last_column; \
         yylloc.first_line = yylloc.last_line;
-    #define TOKEN(TOKNAME) \
+    #define WITH_STR(TOKNAME) \
         /*printf("Pushing %s token starting at %d:%d\n", #TOKNAME, yylloc.first_line, yylloc.first_column);*/ \
-        yylval.tok = strdup(yytext); return TOKNAME
+        yylval.str = strdup(yytext); return TOKNAME
+    #define WITHOUT_STR(TOKNAME) \
+        /*printf("Pushing %s token starting at %d:%d\n", #TOKNAME, yylloc.first_line, yylloc.first_column);*/ \
+        return TOKNAME
     #define OPERATOR \
         /*printf("Pushing %s token starting at %d:%d\n", yytext, yylloc.first_line, yylloc.first_column);*/ \
         return yytext[0]
@@ -38,10 +41,10 @@
     /*=======================================================================*/
 
     /* Newline and single-line comment */
-(\n|\r\n?)                                          LOCATION_LINE; TOKEN(NEWLINE);
+(\n|\r\n?)                                          LOCATION_LINE; WITHOUT_STR(NEWLINE);
 
     /* Semicolons function exactly the same way as newlines */
-;                                                   TOKEN(NEWLINE);
+;                                                   WITHOUT_STR(NEWLINE);
 
     /* And then there's the opposite, the escaped newline */
 \\(\n|\r\n?)                                        LOCATION_LINE; DELETE;
@@ -70,50 +73,52 @@
     /* This is treated separately so there is A) no need to clutter up the
     reserved word space and B) so we don't need the float token to scan the
     version number */
-(?i:version)[ \t]+[0-9]+\.[0-9]+                    TOKEN(VERSION);
+(?i:version)[ \t]+[0-9]+\.[0-9]+                    WITH_STR(VERSION);
 
     /*=======================================================================*/
     /* KEYWORDS                                                              */
     /*=======================================================================*/
 
     /* Resource type keywords */
-(?i:qubits?)                                        TOKEN(TYPE_QUBIT);
-(?i:boolean)                                        TOKEN(TYPE_BOOLEAN);
-(?i:int)                                            TOKEN(TYPE_INT);
-(?i:uint)                                           TOKEN(TYPE_UINT);
-(?i:fixed)                                          TOKEN(TYPE_FIXED);
-(?i:ufixed)                                         TOKEN(TYPE_UFIXED);
-(?i:float)                                          TOKEN(TYPE_FLOAT);
-(?i:double)                                         TOKEN(TYPE_DOUBLE);
+(?i:qubits?)                                        WITHOUT_STR(TYPE_QUBIT);
+(?i:boolean)                                        WITHOUT_STR(TYPE_BOOLEAN);
+(?i:int)                                            WITHOUT_STR(TYPE_INT);
+(?i:uint)                                           WITHOUT_STR(TYPE_UINT);
+(?i:fixed)                                          WITHOUT_STR(TYPE_FIXED);
+(?i:ufixed)                                         WITHOUT_STR(TYPE_UFIXED);
+(?i:float)                                          WITHOUT_STR(TYPE_FLOAT);
+(?i:double)                                         WITHOUT_STR(TYPE_DOUBLE);
 
     /* High-level keywords */
-(?i:def)                                            TOKEN(DEF);
-(?i:if)                                             TOKEN(IF);
-(?i:goto)                                           TOKEN(GOTO);
-(?i:else)                                           TOKEN(ELSE);
-(?i:for)                                            TOKEN(FOR);
-(?i:include)                                        TOKEN(INCLUDE);
+(?i:map)                                            WITHOUT_STR(MAP);
+(?i:let)                                            WITHOUT_STR(LET);
+(?i:set)                                            WITHOUT_STR(SET);
+(?i:def)                                            WITHOUT_STR(DEF);
+(?i:if)                                             WITHOUT_STR(IF);
+(?i:else)                                           WITHOUT_STR(ELSE);
+(?i:for)                                            WITHOUT_STR(FOR);
+(?i:goto)                                           WITHOUT_STR(GOTO);
+(?i:include)                                        WITHOUT_STR(INCLUDE);
 
-    /* Misc. keywords */
-(?i:map)                                            TOKEN(MAP);
-(?i:pragma)                                         TOKEN(PRAGMA);
-(?i:gate)                                           TOKEN(GATE);
+    /* Pragma statement  */
+(?i:pragma)                                         WITHOUT_STR(PRAGMA);
 
     /* Unused reserved words */
-(?i:complex)                                        TOKEN(BAD_RESERVED);
-(?i:string)                                         TOKEN(BAD_RESERVED);
-(?i:vector)                                         TOKEN(BAD_RESERVED);
-(?i:matrix)                                         TOKEN(BAD_RESERVED);
-(?i:struct)                                         TOKEN(BAD_RESERVED);
-(?i:type)                                           TOKEN(BAD_RESERVED);
-(?i:const)                                          TOKEN(BAD_RESERVED);
-(?i:extern)                                         TOKEN(BAD_RESERVED);
-(?i:volatile)                                       TOKEN(BAD_RESERVED);
-(?i:weak)                                           TOKEN(BAD_RESERVED);
+(?i:complex)                                        WITHOUT_STR(BAD_RESERVED);
+(?i:string)                                         WITHOUT_STR(BAD_RESERVED);
+(?i:vector)                                         WITHOUT_STR(BAD_RESERVED);
+(?i:matrix)                                         WITHOUT_STR(BAD_RESERVED);
+(?i:struct)                                         WITHOUT_STR(BAD_RESERVED);
+(?i:type)                                           WITHOUT_STR(BAD_RESERVED);
+(?i:const)                                          WITHOUT_STR(BAD_RESERVED);
+(?i:extern)                                         WITHOUT_STR(BAD_RESERVED);
+(?i:volatile)                                       WITHOUT_STR(BAD_RESERVED);
+(?i:weak)                                           WITHOUT_STR(BAD_RESERVED);
+(?i:gate)                                           WITHOUT_STR(BAD_RESERVED);
 
     /* This one is ugly... but needs to be here for 1.0 compat. If only 1.0
     used "c_" insted of "c-"... */
-[cC]-/[a-zA-Z_]                                     TOKEN(CDASH);
+[cC]-/[a-zA-Z_]                                     WITHOUT_STR(CDASH);
 
 
     /*=======================================================================*/
@@ -121,71 +126,71 @@
     /*=======================================================================*/
 
     /* Integer literals */
-[0-9]+                                              TOKEN(LIT_INT_DEC);
-0[xX][0-9a-fA-F]+                                   TOKEN(LIT_INT_HEX);
-0[bB][01]+                                          TOKEN(LIT_INT_BIN);
-[0-9]+[uU]                                          TOKEN(LIT_UINT_DEC);
-0[xX][0-9a-fA-F]+[uU]                               TOKEN(LIT_UINT_HEX);
-0[bB][01]+[uU]                                      TOKEN(LIT_UINT_BIN);
+[0-9]+                                              WITH_STR(LIT_INT_DEC);
+0[xX][0-9a-fA-F]+                                   WITH_STR(LIT_INT_HEX);
+0[bB][01]+                                          WITH_STR(LIT_INT_BIN);
+[0-9]+[uU]                                          WITH_STR(LIT_UINT_DEC);
+0[xX][0-9a-fA-F]+[uU]                               WITH_STR(LIT_UINT_HEX);
+0[bB][01]+[uU]                                      WITH_STR(LIT_UINT_BIN);
 
     /* Float literals */
-[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?[fF]                TOKEN(LIT_FLOAT);
-[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?                    TOKEN(LIT_DOUBLE);
+[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?[fF]                WITH_STR(LIT_FLOAT);
+[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?                    WITH_STR(LIT_DOUBLE);
 
     /* Fixed literals */
-0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+                     TOKEN(LIT_FIXED_HEX);
-0[bB][01]*\.[01]+                                   TOKEN(LIT_FIXED_BIN);
-0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+[uU]                 TOKEN(LIT_UFIXED_HEX);
-0[bB][01]*\.[01]+[uU]                               TOKEN(LIT_UFIXED_BIN);
+0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+                     WITH_STR(LIT_FIXED_HEX);
+0[bB][01]*\.[01]+                                   WITH_STR(LIT_FIXED_BIN);
+0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+[uU]                 WITH_STR(LIT_UFIXED_HEX);
+0[bB][01]*\.[01]+[uU]                               WITH_STR(LIT_UFIXED_BIN);
 
     /* The same with letters following, to detect errors */
-[0-9]+[uU]?[a-zA-Z_]                                TOKEN(BAD_NUMBER);
-0[xX][0-9a-fA-F]+[uU]?[a-zA-Z_]                     TOKEN(BAD_NUMBER);
-0[bB][01]+[uU]?[a-zA-Z_]                            TOKEN(BAD_NUMBER);
-[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?[fF]?[a-zA-Z_]      TOKEN(BAD_NUMBER);
-0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+[uU]?[a-zA-Z_]       TOKEN(BAD_NUMBER);
-0[bB][01]*\.[01]+[uU]?[a-zA-Z_]                     TOKEN(BAD_NUMBER);
+[0-9]+[uU]?[a-zA-Z_]                                WITHOUT_STR(BAD_NUMBER);
+0[xX][0-9a-fA-F]+[uU]?[a-zA-Z_]                     WITHOUT_STR(BAD_NUMBER);
+0[bB][01]+[uU]?[a-zA-Z_]                            WITHOUT_STR(BAD_NUMBER);
+[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?[fF]?[a-zA-Z_]      WITHOUT_STR(BAD_NUMBER);
+0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+[uU]?[a-zA-Z_]       WITHOUT_STR(BAD_NUMBER);
+0[bB][01]*\.[01]+[uU]?[a-zA-Z_]                     WITHOUT_STR(BAD_NUMBER);
 
     /* Boolean literal keywords */
-(?i:false)                                          TOKEN(LIT_BOOLEAN);
-(?i:true)                                           TOKEN(LIT_BOOLEAN);
+(?i:true)                                           WITHOUT_STR(LIT_TRUE);
+(?i:false)                                          WITHOUT_STR(LIT_FALSE);
 
     /* Mathematical constant keywords */
-(?i:pi)                                             TOKEN(LIT_PI);
-(?i:eu)                                             TOKEN(LIT_EU);
-(?i:im)                                             TOKEN(LIT_IM);
+(?i:pi)                                             WITHOUT_STR(LIT_PI);
+(?i:eu)                                             WITHOUT_STR(LIT_EU);
+(?i:im)                                             WITHOUT_STR(LIT_IM);
 
     /* String literals */
-["]                                                 BEGIN(STRING); TOKEN(STRING_OPEN);
+["]                                                 BEGIN(STRING); WITHOUT_STR(STRING_OPEN);
 }
 <STRING>{
-["]                                                 BEGIN(INITIAL); TOKEN(STRING_CLOSE);
-[\\][tn'"\\]                                        TOKEN(APPEND_ESCAPE);
+["]                                                 BEGIN(INITIAL); WITHOUT_STR(STRING_CLOSE);
+[\\][tn'"\\]                                        WITH_STR(STRBUILD_ESCAPE);
 [\\](\n|\r\n?)                                      LOCATION_LINE; DELETE;
-(\n|\r\n?)                                          LOCATION_LINE; TOKEN(APPEND);
-.                                                   TOKEN(APPEND);
+(\n|\r\n?)                                          LOCATION_LINE; WITH_STR(STRBUILD_APPEND);
+.                                                   WITH_STR(STRBUILD_APPEND);
 }
 <INITIAL>{
 
     /* JSON literals */
-"{|"                                                BEGIN(JSON); TOKEN(JSON_OPEN);
+"{|"                                                BEGIN(JSON); WITHOUT_STR(JSON_OPEN);
 }
 <JSON>{
-"|}"                                                BEGIN(INITIAL); TOKEN(JSON_CLOSE);
-["]                                                 BEGIN(JSONSTRING); TOKEN(APPEND);
-(\n|\r\n?)                                          LOCATION_LINE; TOKEN(APPEND);
-.                                                   TOKEN(APPEND);
+"|}"                                                BEGIN(INITIAL); WITHOUT_STR(JSON_CLOSE);
+["]                                                 BEGIN(JSONSTRING); WITH_STR(STRBUILD_APPEND);
+(\n|\r\n?)                                          LOCATION_LINE; WITH_STR(STRBUILD_APPEND);
+.                                                   WITH_STR(STRBUILD_APPEND);
 }
 <JSONSTRING>{
-["]                                                 BEGIN(JSON); TOKEN(APPEND);
-[\\].                                               TOKEN(APPEND);
-(\n|\r\n?)                                          LOCATION_LINE; TOKEN(APPEND);
-.                                                   TOKEN(APPEND);
+["]                                                 BEGIN(JSON); WITH_STR(STRBUILD_APPEND);
+[\\].                                               WITH_STR(STRBUILD_APPEND);
+(\n|\r\n?)                                          LOCATION_LINE; WITH_STR(STRBUILD_APPEND);
+.                                                   WITH_STR(STRBUILD_APPEND);
 }
 <INITIAL>{
 
     /* Identifiers */
-[a-zA-Z_][a-zA-Z0-9_]*                              TOKEN(IDENTIFIER);
+[a-zA-Z_][a-zA-Z0-9_]*                              WITH_STR(IDENTIFIER);
 
 
     /*=======================================================================*/
@@ -193,28 +198,27 @@
     /*=======================================================================*/
 
 [()[\]{}<>=!~|&^+\-*/%?:,.@]                        OPERATOR;
-"[|"                                                TOKEN(MATRIX_OPEN);
-"|]"                                                TOKEN(MATRIX_CLOSE);
-"=="                                                TOKEN(CMP_EQ);
-"!="                                                TOKEN(CMP_NE);
-"<="                                                TOKEN(CMP_LE);
-">="                                                TOKEN(CMP_GE);
-"||"                                                TOKEN(LOGICAL_OR);
-"&&"                                                TOKEN(LOGICAL_AND);
-"^^"                                                TOKEN(LOGICAL_XOR);
-"<<"                                                TOKEN(SHIFT_LEFT);
-">>"                                                TOKEN(SHIFT_RIGHT);
-">>>"                                               TOKEN(LOG_SHIFT_RIGHT);
-"//"                                                TOKEN(DIV_INT);
-"**"                                                TOKEN(POWER);
-"->"                                                TOKEN(ASSIGN);
+"[|"                                                WITHOUT_STR(MATRIX_OPEN);
+"|]"                                                WITHOUT_STR(MATRIX_CLOSE);
+"=="                                                WITHOUT_STR(CMP_EQ);
+"!="                                                WITHOUT_STR(CMP_NE);
+"<="                                                WITHOUT_STR(CMP_LE);
+">="                                                WITHOUT_STR(CMP_GE);
+"||"                                                WITHOUT_STR(LOGICAL_OR);
+"^^"                                                WITHOUT_STR(LOGICAL_XOR);
+"&&"                                                WITHOUT_STR(LOGICAL_AND);
+"<<"                                                WITHOUT_STR(SHIFT_LEFT);
+">>"                                                WITHOUT_STR(SHIFT_RIGHT);
+"//"                                                WITHOUT_STR(DIV_INT);
+"**"                                                WITHOUT_STR(POWER);
+"->"                                                WITHOUT_STR(ASSIGN);
 
     /*=======================================================================*/
     /* DEFAULT                                                               */
     /*=======================================================================*/
 
     /* Catch any other character as a single-character lexeme */
-.                                                   TOKEN(BAD_CHARACTER);
+.                                                   WITHOUT_STR(BAD_CHARACTER);
 
 
 }
