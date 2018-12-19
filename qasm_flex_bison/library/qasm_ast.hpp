@@ -234,7 +234,7 @@ namespace compiler
                                               + std::string(" on operation ") + type_ ); return qubits_;
                     }
                 }
-                else if (type_ == "cnot" || type_ == "cz" || type_ == "swap" || type_ == "cr" || type_ == "crk")
+                else if (type_ == "cnot" || type_ == "cz" || type_ == "swap" || type_ == "sqswap" || type_ == "cr" || type_ == "crk")
                 {
                     switch(qubit_pair_index){
                         case 1: return two_qubit_pairs_.first; break;
@@ -333,7 +333,7 @@ namespace compiler
                     measureParityProperties.first.second.printMembers();
                     std::cout << "With axis " << measureParityProperties.second.second << std::endl;
                 }
-                else if (type_ == "cnot" || type_ == "cz" || type_ == "swap")
+                else if (type_ == "cnot" || type_ == "cz" || type_ == "swap" || type_ == "sqswap")
                 {
                     std::cout << std::endl;
                     std::cout << "Qubit Pair 1: ";

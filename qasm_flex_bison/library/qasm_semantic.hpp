@@ -92,7 +92,7 @@ namespace compiler
                 {
                     result = checkUnitaryGate(op, linenumber);
                 }
-                else if (type_ == "cnot" || type_ == "cz" || type_ == "swap" || type_ == "cr" || type_ == "crk")
+                else if (type_ == "cnot" || type_ == "cz" || type_ == "swap" || type_ == "sqswap" || type_ == "cr" || type_ == "crk")
                 {
                     result = checkTwoQubits(op, linenumber);
                 }
