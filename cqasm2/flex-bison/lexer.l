@@ -1,6 +1,6 @@
 %option yylineno
 %{
-    #include "cqasm2/ast/node.hpp"
+    #include "cqasm2/ast/ast.hpp"
     #include "parser.hpp"
     #define YY_USER_ACTION yylloc.last_column += yyleng;
     #define LOCATION_RESET \

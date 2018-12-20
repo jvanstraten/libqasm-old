@@ -1,4 +1,6 @@
 version 2.0
 
-qubit banana
-
+    display                     # Dump the full quantum state to the console
+    display_binary              # Dump the measurement register state to the console
+    reset_averaging             # Reset measurement averaging
+    error_model mdl, a          # Set the error model

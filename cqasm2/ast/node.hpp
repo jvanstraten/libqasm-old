@@ -7,7 +7,7 @@
 #include <string>
 #include <memory>
 #include <list>
-#include "cqasm2/semantic/namespace.hpp"
+//#include "cqasm2/semantic/namespace.hpp"
 
 namespace cqasm2 { namespace ast {
 
@@ -75,17 +75,17 @@ namespace cqasm2 { namespace ast {
          * Resolves all references in this node tree, and gives all
          * declarations a unique name.
          */
-        virtual void resolve(Namespace &names) = 0;
+        //virtual void resolve(Namespace &names) = 0;
 
         /**
          * Performs macro expansion, constant folding, type checking, etc.
          */
-        virtual std::shared_ptr<Node> elaborate() = 0;
+        //virtual std::shared_ptr<Node> elaborate() = 0;
 
         /**
          * Prints this node using cQASM syntax if possible.
          */
-        virtual operator std::string() const = 0;
+        //virtual operator std::string() const = 0;
 
     };
 

@@ -1,7 +1,7 @@
 %{
     #include <cstdlib>
     #include <string>
-    #include "cqasm2/ast/node.hpp"
+    #include "cqasm2/ast/ast.hpp"
     int yyerror(char const *s);
     extern int yylex(void);
     extern int yylineno;
@@ -12,8 +12,15 @@
 /* YYSTYPE union */
 %union {
     char *str;
-    cqasm2::ast::Node *node;
+    cqasm2::ast::Type *typ;
+    cqasm2::ast::NumericLiteral *numlit;
+    cqasm2::ast::Expression *expr;
 };
+
+/* Typenames for nonterminals */
+%type <typ> Type
+%type <numlit> NumericLiteral
+%type <expr> Expression
 
 /* Version header */
 %token <str> VERSION
@@ -94,13 +101,10 @@ priority than '|' */
 %left '@'
 %nonassoc BUNDLE
 
-/* Typenames for nonterminals */
-%type <node> Type
-
 /* Misc. Yacc directives */
 %error-verbose
 %locations
-%start cQASM2
+%start Program
 
 %%
 
@@ -115,54 +119,52 @@ OptNewline      : Newline
                 ;
 
 /* Type specifiers. */
-Type            : TYPE_QUBIT                                                    {  }
-                | TYPE_BOOLEAN                                                  {  }
-                | TYPE_INT    '<' Expression '>' %prec TYPE_PARAM               {  }
-                | TYPE_UINT   '<' Expression '>' %prec TYPE_PARAM               {  }
-                | TYPE_FIXED  '<' Expression ',' Expression '>' %prec TYPE_PARAM{  }
-                | TYPE_UFIXED '<' Expression ',' Expression '>' %prec TYPE_PARAM{  }
-                | TYPE_FLOAT                                                    {  }
-                | TYPE_DOUBLE                                                   {  }
+Type            : TYPE_QUBIT                                                    { $$ = new QubitType(); }
+                | TYPE_BOOLEAN                                                  { $$ = new NumericType(false); }
+                | TYPE_INT    '<' Expression '>' %prec TYPE_PARAM               { $$ = new NumericType(true,  std::make_shared<Expression>($3)); }
+                | TYPE_UINT   '<' Expression '>' %prec TYPE_PARAM               { $$ = new NumericType(false, std::make_shared<Expression>($3)); }
+                | TYPE_FIXED  '<' Expression ',' Expression '>' %prec TYPE_PARAM{ $$ = new NumericType(true,  std::make_shared<Expression>($3), std::make_shared<Expression>($5)); }
+                | TYPE_UFIXED '<' Expression ',' Expression '>' %prec TYPE_PARAM{ $$ = new NumericType(false, std::make_shared<Expression>($3), std::make_shared<Expression>($5)); }
+                | TYPE_FLOAT                                                    { $$ = new FloatType(); }
+                | TYPE_DOUBLE                                                   { $$ = new DoubleType(); }
                 ;
 
 /* All literals that reduce to numericals. */
-NumericLiteral  : LIT_INT_DEC
-                | LIT_INT_HEX
-                | LIT_INT_BIN
-                | LIT_UINT_DEC
-                | LIT_UINT_HEX
-                | LIT_UINT_BIN
-                | LIT_FIXED_HEX
-                | LIT_FIXED_BIN
-                | LIT_UFIXED_HEX
-                | LIT_UFIXED_BIN
-                | LIT_FLOAT
-                | LIT_DOUBLE
-                | LIT_TRUE
-                | LIT_FALSE
-                | LIT_PI
-                | LIT_EU
-                | LIT_IM
+NumericLiteral  : LIT_INT_DEC                                                   { $$ = new DecLiteral($1); free($1); }
+                | LIT_UINT_DEC                                                  { $$ = new DecLiteral($1); free($1); }
+                | LIT_INT_HEX                                                   { $$ = new HexLiteral($1); free($1); }
+                | LIT_UINT_HEX                                                  { $$ = new HexLiteral($1); free($1); }
+                | LIT_FIXED_HEX                                                 { $$ = new HexLiteral($1); free($1); }
+                | LIT_UFIXED_HEX                                                { $$ = new HexLiteral($1); free($1); }
+                | LIT_INT_BIN                                                   { $$ = new BinLiteral($1); free($1); }
+                | LIT_UINT_BIN                                                  { $$ = new BinLiteral($1); free($1); }
+                | LIT_FIXED_BIN                                                 { $$ = new BinLiteral($1); free($1); }
+                | LIT_UFIXED_BIN                                                { $$ = new BinLiteral($1); free($1); }
+                | LIT_FLOAT                                                     { $$ = new FloatLiteral($1); free($1); }
+                | LIT_DOUBLE                                                    { $$ = new FloatLiteral($1); free($1); }
+                | LIT_TRUE                                                      { $$ = new NamedLiteral("true"); }
+                | LIT_FALSE                                                     { $$ = new NamedLiteral("false"); }
+                | LIT_PI                                                        { $$ = new NamedLiteral("pi"); }
+                | LIT_EU                                                        { $$ = new NamedLiteral("eu"); }
+                | LIT_IM                                                        { $$ = new NamedLiteral("im"); }
                 ;
 
 /* These expressions are almost fully-featured C. Of course only a subset of
 this is semantically legal depending on context, and almost all of these rules
 must be statically reduced by desugaring. */
-Expression      : NumericLiteral
-                | IDENTIFIER
-                | IDENTIFIER '.' IDENTIFIER
-                | IDENTIFIER '[' IndexList ']' %prec '['
-                | IDENTIFIER '[' IndexList ']'  '.' IDENTIFIER %prec '['
-                | IDENTIFIER '(' ExpressionList ')' %prec '('
-                | IDENTIFIER '(' ')' %prec '('
-                | '(' Expression ')'
-                | '(' Type ')' Expression %prec TYPECAST
-                | '(' SHIFT_LEFT Expression ')' Expression %prec TYPECAST
-                | '(' SHIFT_RIGHT Expression ')' Expression %prec TYPECAST
-                | '+' Expression %prec UPLUS
-                | '-' Expression %prec UMINUS
-                | '!' Expression
-                | '~' Expression
+Expression      : NumericLiteral                                                { $$ = $1; }
+                | IDENTIFIER                                                    { $$ = new Identifier($1); free($1); }
+                | Expression '.' IDENTIFIER                                     { $$ = new Subscript($1, $3); free($3); }
+                | Expression '[' IndexList ']' %prec '['                        { $$ = $1; /* TODO */ }
+                | IDENTIFIER '(' ExpressionList ')' %prec '('                   { $$ = new Operation(true, $1, $3); }
+                | '(' Expression ')'                                            { $$ = $2; }
+                | '(' Type ')' Expression %prec TYPECAST                        { $$ = new TypeCast($2, $4); }
+                | '(' SHIFT_LEFT Expression ')' Expression %prec TYPECAST       { $$ = new ShiftCast(true, $3, $5); }
+                | '(' SHIFT_RIGHT Expression ')' Expression %prec TYPECAST      { $$ = new ShiftCast(false, $3, $5); }
+                | '+' Expression %prec UPLUS                                    { $$ = new Operation(false, "+", new ExpressionList()->push_expr($2)); }
+                | '-' Expression %prec UMINUS                                   { $$ = new Operation(false, "-", new ExpressionList()->push_expr($2)); }
+                | '!' Expression                                                { $$ = new Operation(false, "+", new ExpressionList()->push_expr($2)); }
+                | '~' Expression                                                { $$ = new Operation(false, "+", new ExpressionList()->push_expr($2)); }
                 | Expression '*' Expression
                 | Expression '/' Expression
                 | Expression '%' Expression
@@ -205,7 +207,7 @@ MatrixData      : MatrixData Newline ExpressionList
                 | ExpressionList
                 ;
 
-Matrix          : MATRIX_OPEN OptNewline MatrixData OptNewline MATRIX_CLOSE
+MatrixLiteral   : MATRIX_OPEN OptNewline MatrixData OptNewline MATRIX_CLOSE
                 | '[' ExpressionList ']'
                 ;
 
@@ -217,19 +219,19 @@ StringBuilder   : StringBuilder STRBUILD_APPEND
                 ;
 
 /* String literal. */
-String          : STRING_OPEN StringBuilder STRING_CLOSE
+StringLiteral   : STRING_OPEN StringBuilder STRING_CLOSE
                 ;
 
 /* JSON literal. */
-Json            : JSON_OPEN StringBuilder JSON_CLOSE
+JsonLiteral     : JSON_OPEN StringBuilder JSON_CLOSE
                 ;
 
 /* Operands in cQASM can be expressions, strings (for print and error), or
 matrices (for the U gate). */
 Operand         : Expression %prec BUNDLE
-                | Matrix
-                | String
-                | Json
+                | MatrixLiteral
+                | StringLiteral
+                | JsonLiteral
                 ;
 
 /* List of operands. */
@@ -244,7 +246,7 @@ IdentifierList  : IdentifierList ',' IDENTIFIER
 
 /* The information caried by an annotation or pragma statement. */
 AnnotationData  : IDENTIFIER IDENTIFIER
-                | IDENTIFIER IDENTIFIER Json
+                | IDENTIFIER IDENTIFIER ':' OperandList
                 ;
 
 /* Pragma statement. */
@@ -254,6 +256,7 @@ Pragma          : PRAGMA AnnotationData
 /* Resource declaration statament. */
 Resource        : Type IDENTIFIER
                 | Type IDENTIFIER '=' Expression
+                | Type IDENTIFIER '[' Expression ']'
                 | Type IDENTIFIER '[' Expression ']' '=' Expression
                 | LET IDENTIFIER '=' Expression
                 | TYPE_QUBIT NumericLiteral
@@ -284,7 +287,7 @@ MacroIfElse     : IF '(' Expression ')' Block
                 ;
 
 /* Include statement. */
-Include         : INCLUDE String
+Include         : INCLUDE StringLiteral
                 ;
 
 /* Subcircuit statement. */
@@ -297,17 +300,18 @@ Label           : IDENTIFIER ':'
                 ;
 
 /* Name for gates, with optional conditional syntax. */
-GateRef         : IDENTIFIER
-                | CDASH GateRef Expression ','
+GateType        : IDENTIFIER
+                | CDASH GateType Expression ','
                 ;
 
 /* Gate execution. This includes classical instructions. Note that this is
 NOT directly a statement grammatically; they are first made part of a bundle.
 */
-Gate            : GateRef
-                | GateRef OperandList
-                | GateRef OperandList ASSIGN OperandList
+Gate            : GateType
+                | GateType OperandList
+                | GateType OperandList ASSIGN OperandList
                 | IF Expression GOTO IDENTIFIER
+                | GOTO IDENTIFIER
                 ;
 
 /* Gates are not statements but can be annotated, so they need their own
@@ -352,17 +356,17 @@ AnnotStatement  : AnnotStatement '@' AnnotationData
                 ;
 
 /* List of one or more statements. */
-Statements      : Statements Newline AnnotStatement
+BlockData       : BlockData Newline AnnotStatement
                 | AnnotStatement
                 ;
 
 /* Block of code; zero or more statements. */
-Block           : '{' OptNewline Statements OptNewline '}'
+Block           : '{' OptNewline BlockData OptNewline '}'
                 | '{' OptNewline '}'
                 ;
 
 /* Toplevel. */
-cQASM2          : OptNewline VERSION Newline Statements OptNewline
+Program         : OptNewline VERSION Newline BlockData OptNewline
                 | OptNewline VERSION OptNewline
                 ;
 

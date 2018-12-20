@@ -7,7 +7,6 @@
  */
 
 #include "node.hpp"
-//#include "type.hpp"
-//#include "expression.hpp"
+#include "ast.gen.hpp"
 
 #endif
