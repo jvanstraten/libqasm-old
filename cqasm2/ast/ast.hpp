@@ -6,6 +6,7 @@
  * Includes all AST node header files.
  */
 
+#include "operators.hpp"
 #include "node.hpp"
 #include "ast.gen.hpp"
 

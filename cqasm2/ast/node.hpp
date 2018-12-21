@@ -7,12 +7,32 @@
 #include <string>
 #include <memory>
 #include <list>
-//#include "cqasm2/semantic/namespace.hpp"
 
 namespace cqasm2 { namespace ast {
 
+    /**
+     * Options that can be passed to pprint() to change the way it behaves.
+     */
+    typedef struct {
+
+        /**
+         * Number of spaces to indent by.
+         */
+        int indent_width;
+
+        /**
+         * Minimum precedence level that warrents placing parentheses around an
+         * expression before printing it.
+         */
+        int min_prec;
+
+    } pprint_opts_t;
+
+    /**
+     * Base class for AST nodes. Includes position information.
+     */
     class Node {
-    protected:
+    public:
 
         /**
          * Source filename.
@@ -20,21 +40,29 @@ namespace cqasm2 { namespace ast {
         std::string source;
 
         /**
-         * Line number within the source file.
+         * Starting line number within the source file.
          */
-        int line;
+        int first_line;
 
         /**
-         * Column within the source file.
+         * Starting column within the source file.
          */
-        int column;
+        int first_column;
+
+        /**
+         * Final line number within the source file.
+         */
+        int last_line;
+
+        /**
+         * Final column within the source file.
+         */
+        int last_column;
 
         /**
          * List of macro expansions that this node was generated from.
          */
         std::list<std::string> expansions;
-
-    public:
 
         /**
          * Constructor. When constructed during parsing, this will copy over
@@ -52,40 +80,36 @@ namespace cqasm2 { namespace ast {
         /**
          * Copy line source, line number, and column information from the given
          * node.
+         * @param similar Node to copy data from.
          */
-        void setSource(const Node &similar);
+        void set_source(const Node &similar);
 
         /**
-         * Set source, line number, and column directly.
+         * Adds an expansion to the list. These are printed, in order, in error
+         * messages relating to nodes.
+         * @param expansion Line to print.
          */
-        void setSource(std::string source, int line, int column);
+        void push_expansion(std::string expansion);
 
         /**
-         * Adds an expansion to the list.
-         */
-        void addExpansion(std::string expansion);
-
-        /**
-         * Returns the source of this node. Expansions are listed first, each
+         * @return The source of this node. Expansions are listed first, each
          * with a newline, followed by the filename, line number, and column.
          */
-        std::string getSource() const;
+        std::string fmt_source() const;
 
         /**
-         * Resolves all references in this node tree, and gives all
-         * declarations a unique name.
-         */
-        //virtual void resolve(Namespace &names) = 0;
-
-        /**
-         * Performs macro expansion, constant folding, type checking, etc.
-         */
-        //virtual std::shared_ptr<Node> elaborate() = 0;
-
-        /**
-         * Prints this node using cQASM syntax if possible.
+         * Converts to a "ClassName(...)" string for debugging.
+         * @return Debug representation of this node.
          */
         virtual operator std::string() const = 0;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const = 0;
 
     };
 

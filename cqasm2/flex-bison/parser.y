@@ -9,13 +9,15 @@
     extern int yylineno;
     bool yyrecovered;
     using namespace cqasm2::ast;
+    pprint_opts_t pprint_opts;
 %}
 
 /* YYSTYPE union */
 %union {
     char                            *str;
     cqasm2::ast::Type               *typ;
-    cqasm2::ast::NumericLiteral     *numlit;
+    cqasm2::ast::NumericLiteral     *nlit;
+    cqasm2::ast::ArrayLiteral       *alit;
     cqasm2::ast::Expression         *expr;
     cqasm2::ast::ExpressionList     *expl;
     cqasm2::ast::IndexEntry         *idxe;
@@ -39,7 +41,8 @@
 
 /* Typenames for nonterminals */
 %type <typ> Type
-%type <numlit> NumericLiteral
+%type <nlit> NumericLiteral
+%type <alit> ArrayLiteral
 %type <expr> Expression
 %type <expl> ExpressionList
 %type <idxe> IndexEntry
@@ -115,7 +118,8 @@ as "int<(3>a)" and would thus always lead to a syntax error. */
 %nonassoc TYPE_PARAM
 
 /* Associativity rules for static expressions. The lowest precedence level
-comes first. */
+comes first. NOTE: expression precedence must match the values in
+operators.[ch]pp for correct pretty-printing! */
 %left ',' ':'                                /* SIMD/SGMQ indexation */
 %right '?'                                   /* ?: ternary operator */
 %left LOGICAL_OR                             /* Boolean or */
@@ -183,44 +187,49 @@ NumericLiteral  : LIT_INT_DEC                                                   
                 | LIT_NAMED                                                     { $$ = new NamedLiteral($1); }
                 ;
 
+/* Array literal. */
+ArrayLiteral    : '{' ExpressionList '}'                                        { $$ = new ArrayLiteral($2); }
+                ;
+
 /* These expressions are almost fully-featured C. Of course only a subset of
 this is semantically legal depending on context, and almost all of these rules
 must be statically reduced by desugaring. */
 Expression      : NumericLiteral                                                { $$ = $1; }
+                | ArrayLiteral                                                  { $$ = $1; }
                 | IDENTIFIER                                                    { $$ = new Identifier($1); }
                 | Expression '.' IDENTIFIER                                     { $$ = new Subscript($1, $3); }
-                | Expression '[' IndexList ']' %prec '['                        { $$ = $1; /* TODO */ }
-                | IDENTIFIER '(' ExpressionList ')' %prec '('                   { $$ = new Operation(true, $1, $3); }
+                | Expression '[' IndexList ']' %prec '['                        { $$ = new Indexation($1, $3); }
+                | IDENTIFIER '(' ExpressionList ')' %prec '('                   { $$ = new Function($1, $3); }
                 | '(' Expression ')'                                            { $$ = $2; }
                 | '(' Type ')' Expression %prec TYPECAST                        { $$ = new TypeCast($2, $4); }
                 | '(' SHIFT_LEFT Expression ')' Expression %prec TYPECAST       { $$ = new ShiftCast(true, $3, $5); }
                 | '(' SHIFT_RIGHT Expression ')' Expression %prec TYPECAST      { $$ = new ShiftCast(false, $3, $5); }
                 | '+' Expression %prec UPLUS                                    { $$ = $2; }
-                | '-' Expression %prec UMINUS                                   { $$ = new Operation(false, strdup("neg"),  (new ExpressionList())->push_expr($2)); }
-                | '!' Expression                                                { $$ = new Operation(false, strdup("not"),  (new ExpressionList())->push_expr($2)); }
-                | '~' Expression                                                { $$ = new Operation(false, strdup("inv"),  (new ExpressionList())->push_expr($2)); }
-                | Expression POWER Expression                                   { $$ = new Operation(false, strdup("pow"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '*' Expression                                     { $$ = new Operation(false, strdup("mul"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '/' Expression                                     { $$ = new Operation(false, strdup("div"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression DIV_INT Expression                                 { $$ = new Operation(false, strdup("idiv"), (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '%' Expression                                     { $$ = new Operation(false, strdup("mod"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '+' Expression                                     { $$ = new Operation(false, strdup("add"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '-' Expression                                     { $$ = new Operation(false, strdup("sub"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression SHIFT_LEFT Expression                              { $$ = new Operation(false, strdup("shl"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression SHIFT_RIGHT Expression                             { $$ = new Operation(false, strdup("shr"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '>' Expression                                     { $$ = new Operation(false, strdup("cgt"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '<' Expression                                     { $$ = new Operation(false, strdup("clt"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression CMP_GE Expression                                  { $$ = new Operation(false, strdup("cge"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression CMP_LE Expression                                  { $$ = new Operation(false, strdup("cle"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression CMP_EQ Expression                                  { $$ = new Operation(false, strdup("ceq"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression CMP_NE Expression                                  { $$ = new Operation(false, strdup("cne"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '&' Expression                                     { $$ = new Operation(false, strdup("and"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '^' Expression                                     { $$ = new Operation(false, strdup("or"),   (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '|' Expression                                     { $$ = new Operation(false, strdup("xor"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression LOGICAL_AND Expression                             { $$ = new Operation(false, strdup("land"), (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression LOGICAL_XOR Expression                             { $$ = new Operation(false, strdup("lxor"), (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression LOGICAL_OR Expression                              { $$ = new Operation(false, strdup("lor"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
-                | Expression '?' Expression ':' Expression %prec '?'            { $$ = new Operation(false, strdup("slct"), (new ExpressionList())->push_expr($1)->push_expr($3)->push_expr($5)); }
+                | '-' Expression %prec UMINUS                                   { $$ = new Operation(operators::NEG,  $2); }
+                | '!' Expression                                                { $$ = new Operation(operators::NOT,  $2); }
+                | '~' Expression                                                { $$ = new Operation(operators::INV,  $2); }
+                | Expression POWER Expression                                   { $$ = new Operation(operators::POW,  $1, $3); }
+                | Expression '*' Expression                                     { $$ = new Operation(operators::MUL,  $1, $3); }
+                | Expression '/' Expression                                     { $$ = new Operation(operators::DIV,  $1, $3); }
+                | Expression DIV_INT Expression                                 { $$ = new Operation(operators::IDIV, $1, $3); }
+                | Expression '%' Expression                                     { $$ = new Operation(operators::MOD,  $1, $3); }
+                | Expression '+' Expression                                     { $$ = new Operation(operators::ADD,  $1, $3); }
+                | Expression '-' Expression                                     { $$ = new Operation(operators::SUB,  $1, $3); }
+                | Expression SHIFT_LEFT Expression                              { $$ = new Operation(operators::SHL,  $1, $3); }
+                | Expression SHIFT_RIGHT Expression                             { $$ = new Operation(operators::SHR,  $1, $3); }
+                | Expression '>' Expression                                     { $$ = new Operation(operators::CGT,  $1, $3); }
+                | Expression '<' Expression                                     { $$ = new Operation(operators::CLT,  $1, $3); }
+                | Expression CMP_GE Expression                                  { $$ = new Operation(operators::CGE,  $1, $3); }
+                | Expression CMP_LE Expression                                  { $$ = new Operation(operators::CLE,  $1, $3); }
+                | Expression CMP_EQ Expression                                  { $$ = new Operation(operators::CEQ,  $1, $3); }
+                | Expression CMP_NE Expression                                  { $$ = new Operation(operators::CNE,  $1, $3); }
+                | Expression '&' Expression                                     { $$ = new Operation(operators::AND,  $1, $3); }
+                | Expression '^' Expression                                     { $$ = new Operation(operators::XOR,  $1, $3); }
+                | Expression '|' Expression                                     { $$ = new Operation(operators::OR,   $1, $3); }
+                | Expression LOGICAL_AND Expression                             { $$ = new Operation(operators::LAND, $1, $3); }
+                | Expression LOGICAL_XOR Expression                             { $$ = new Operation(operators::LXOR, $1, $3); }
+                | Expression LOGICAL_OR Expression                              { $$ = new Operation(operators::LOR,  $1, $3); }
+                | Expression '?' Expression ':' Expression %prec '?'            { $$ = new Operation(operators::SLCT, $1, $3, $5); }
                 | error                                                         { $$ = new ErroneousExpression(); yyrecovered = true; }
                 ;
 
@@ -249,8 +258,8 @@ MatrixLiteral   : MATRIX_OPEN OptNewline MatrixLiteral2 OptNewline MATRIX_CLOSE 
 
 /* String builder. This accumulates JSON/String data, mostly
 character-by-character. */
-StringBuilder   : StringBuilder STRBUILD_APPEND                                 { $$ = $1; /* TODO */ free($2); }
-                | StringBuilder STRBUILD_ESCAPE                                 { $$ = $1; $$->os << $2; free($2); }
+StringBuilder   : StringBuilder STRBUILD_APPEND                                 { $$ = $1; $$->os << $2; free($2); }
+                | StringBuilder STRBUILD_ESCAPE                                 { $$ = $1; $$->os << $2[1]; free($2); }
                 |                                                               { $$ = new StringBuilder(); }
                 ;
 
@@ -268,6 +277,7 @@ Operand         : Expression %prec BUNDLE                                       
                 | MatrixLiteral                                                 { $$ = $1; }
                 | StringLiteral                                                 { $$ = $1; }
                 | JsonLiteral                                                   { $$ = $1; }
+                | Type                                                          { $$ = $1; }
                 ;
 
 /* List of operands. */
@@ -296,8 +306,8 @@ NOT directly a statement grammatically; they are first made part of a bundle.
 Gate            : GateType                                                      { $$ = new NormalGate($1); }
                 | GateType OperandList                                          { $$ = new NormalGate($1, $2); }
                 | GateType OperandList ASSIGN OperandList                       { $$ = new NormalGate($1, $2, $4); }
-                | IF Expression GOTO IDENTIFIER                                 { $$ = new IfGoto($4, $2); }
-                | GOTO IDENTIFIER                                               { $$ = new IfGoto($2); }
+                | IF Expression GOTO IDENTIFIER                                 { $$ = new IfGoto(new Identifier($4), $2); }
+                | GOTO IDENTIFIER                                               { $$ = new IfGoto(new Identifier($2)); }
                 ;
 
 /* Gates are not statements but can be annotated, so they need their own
@@ -358,8 +368,8 @@ Block           : '{' OptNewline StatementList OptNewline '}'                   
                 ;
 
 /* Toplevel. */
-Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = new Program($2, $4); std::cout << std::string(*$$) << std::endl; }
-                | OptNewline VERSION OptNewline                                 { $$ = new Program($2, new Block()); std::cout << std::string(*$$) << std::endl; }
+Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = new Program($2, $4);          std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; $$->pprint(std::cout, pprint_opts); std::cout << "-------------" << std::endl; }
+                | OptNewline VERSION OptNewline                                 { $$ = new Program($2, new Block()); std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; $$->pprint(std::cout, pprint_opts); std::cout << "-------------" << std::endl; }
                 ;
 
 

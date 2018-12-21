@@ -6,6 +6,22 @@ namespace cqasm2 { namespace ast {
 
 
     /**
+     * Constructor for Operand.
+     */
+    Operand::Operand() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Operand::operator std::string() const {
+        std::ostringstream os;
+        os << "Operand(";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Type.
      */
     Type::Type() {
@@ -160,22 +176,6 @@ namespace cqasm2 { namespace ast {
     DoubleType::operator std::string() const {
         std::ostringstream os;
         os << "DoubleType(";
-        os << ")";
-        return os.str();
-    }
-
-    /**
-     * Constructor for Operand.
-     */
-    Operand::Operand() {
-    }
-
-    /**
-     * Converts to a "ClassName(...)" string for debugging.
-     */
-    Operand::operator std::string() const {
-        std::ostringstream os;
-        os << "Operand(";
         os << ")";
         return os.str();
     }
@@ -383,6 +383,55 @@ namespace cqasm2 { namespace ast {
         std::ostringstream os;
         os << "NamedLiteral(";
         os << name;
+        os << ")";
+        return os.str();
+    }
+
+    /**
+     * Constructor for ArrayLiteral.
+     * @param data Data contained within the array literal.
+     */
+    ArrayLiteral::ArrayLiteral(std::shared_ptr<ExpressionList> data):
+        data(data)
+    {}
+
+    /**
+     * Constructor for ArrayLiteral, intended to be used from YACC only. This
+     * version:
+     *  - uses char* for strings and bare pointers instead of std::shared_ptr<>
+     * encapsulations for inputs;
+     *  - calls free() on strings passed to it after constructing std::string
+     * instances.
+     * @param data Data contained within the array literal.
+     */
+    ArrayLiteral::ArrayLiteral(ExpressionList * data):
+        data(std::shared_ptr<ExpressionList>(data))
+    {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    ArrayLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "ArrayLiteral(";
+        os << (data ? std::string(*data) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
+     * Constructor for Reference.
+     */
+    Reference::Reference() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Reference::operator std::string() const {
+        std::ostringstream os;
+        os << "Reference(";
         os << ")";
         return os.str();
     }
@@ -758,15 +807,12 @@ namespace cqasm2 { namespace ast {
 
     /**
      * Constructor for Operation.
-     * @param fun Whether this is a function call (true) or an inline operator
-     * (false).
-     * @param oper Operator or function name.
-     * @param ops Operand list.
+     * @param oper Operator description.
+     * @param op1 Operand 1.
      */
-    Operation::Operation(bool fun, std::string oper, std::shared_ptr<ExpressionList> ops):
-        fun(fun),
+    Operation::Operation(operator_t oper, std::shared_ptr<Expression> op1):
         oper(oper),
-        ops(ops)
+        op1(op1)
     {}
 
     /**
@@ -776,18 +822,77 @@ namespace cqasm2 { namespace ast {
      * encapsulations for inputs;
      *  - calls free() on strings passed to it after constructing std::string
      * instances.
-     * @param fun Whether this is a function call (true) or an inline operator
-     * (false).
-     * @param oper Operator or function name. The passed pointer will be free()d
-     * by this constructor!
-     * @param ops Operand list.
+     * @param oper Operator description.
+     * @param op1 Operand 1.
      */
-    Operation::Operation(bool fun, char * oper, ExpressionList * ops):
-        fun(fun),
-        oper(std::string(oper)),
-        ops(std::shared_ptr<ExpressionList>(ops))
+    Operation::Operation(operator_t oper, Expression * op1):
+        oper(oper),
+        op1(std::shared_ptr<Expression>(op1))
     {
-        free(oper);
+    }
+
+    /**
+     * Constructor for Operation.
+     * @param oper Operator description.
+     * @param op1 Operand 1.
+     * @param op2 Operand 2, or null if unary.
+     */
+    Operation::Operation(operator_t oper, std::shared_ptr<Expression> op1, std::shared_ptr<Expression> op2):
+        oper(oper),
+        op1(op1),
+        op2(op2)
+    {}
+
+    /**
+     * Constructor for Operation, intended to be used from YACC only. This
+     * version:
+     *  - uses char* for strings and bare pointers instead of std::shared_ptr<>
+     * encapsulations for inputs;
+     *  - calls free() on strings passed to it after constructing std::string
+     * instances.
+     * @param oper Operator description.
+     * @param op1 Operand 1.
+     * @param op2 Operand 2, or null if unary.
+     */
+    Operation::Operation(operator_t oper, Expression * op1, Expression * op2):
+        oper(oper),
+        op1(std::shared_ptr<Expression>(op1)),
+        op2(std::shared_ptr<Expression>(op2))
+    {
+    }
+
+    /**
+     * Constructor for Operation.
+     * @param oper Operator description.
+     * @param op1 Operand 1.
+     * @param op2 Operand 2, or null if unary.
+     * @param op3 Operand 3, or null if unary/binary.
+     */
+    Operation::Operation(operator_t oper, std::shared_ptr<Expression> op1, std::shared_ptr<Expression> op2, std::shared_ptr<Expression> op3):
+        oper(oper),
+        op1(op1),
+        op2(op2),
+        op3(op3)
+    {}
+
+    /**
+     * Constructor for Operation, intended to be used from YACC only. This
+     * version:
+     *  - uses char* for strings and bare pointers instead of std::shared_ptr<>
+     * encapsulations for inputs;
+     *  - calls free() on strings passed to it after constructing std::string
+     * instances.
+     * @param oper Operator description.
+     * @param op1 Operand 1.
+     * @param op2 Operand 2, or null if unary.
+     * @param op3 Operand 3, or null if unary/binary.
+     */
+    Operation::Operation(operator_t oper, Expression * op1, Expression * op2, Expression * op3):
+        oper(oper),
+        op1(std::shared_ptr<Expression>(op1)),
+        op2(std::shared_ptr<Expression>(op2)),
+        op3(std::shared_ptr<Expression>(op3))
+    {
     }
 
     /**
@@ -796,9 +901,52 @@ namespace cqasm2 { namespace ast {
     Operation::operator std::string() const {
         std::ostringstream os;
         os << "Operation(";
-        os << fun;
+        os << std::string(oper);
         os << ", ";
-        os << oper;
+        os << (op1 ? std::string(*op1) : "NULL");
+        os << ", ";
+        os << (op2 ? std::string(*op2) : "NULL");
+        os << ", ";
+        os << (op3 ? std::string(*op3) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
+     * Constructor for Function.
+     * @param name Function name.
+     * @param ops Operand list.
+     */
+    Function::Function(std::string name, std::shared_ptr<ExpressionList> ops):
+        name(name),
+        ops(ops)
+    {}
+
+    /**
+     * Constructor for Function, intended to be used from YACC only. This
+     * version:
+     *  - uses char* for strings and bare pointers instead of std::shared_ptr<>
+     * encapsulations for inputs;
+     *  - calls free() on strings passed to it after constructing std::string
+     * instances.
+     * @param name Function name. The passed pointer will be free()d by this
+     * constructor!
+     * @param ops Operand list.
+     */
+    Function::Function(char * name, ExpressionList * ops):
+        name(std::string(name)),
+        ops(std::shared_ptr<ExpressionList>(ops))
+    {
+        free(name);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Function::operator std::string() const {
+        std::ostringstream os;
+        os << "Function(";
+        os << name;
         os << ", ";
         os << (ops ? std::string(*ops) : "NULL");
         os << ")";
@@ -1632,7 +1780,7 @@ namespace cqasm2 { namespace ast {
      * Constructor for IfGoto.
      * @param lbl Name of the label to jump to.
      */
-    IfGoto::IfGoto(std::string lbl):
+    IfGoto::IfGoto(std::shared_ptr<Reference> lbl):
         lbl(lbl)
     {}
 
@@ -1642,23 +1790,21 @@ namespace cqasm2 { namespace ast {
      * encapsulations for inputs;
      *  - calls free() on strings passed to it after constructing std::string
      * instances.
-     * @param lbl Name of the label to jump to. The passed pointer will be
-     * free()d by this constructor!
+     * @param lbl Name of the label to jump to.
      */
-    IfGoto::IfGoto(char * lbl):
-        lbl(std::string(lbl))
+    IfGoto::IfGoto(Reference * lbl):
+        lbl(std::shared_ptr<Reference>(lbl))
     {
-        free(lbl);
     }
 
     /**
      * Constructor for IfGoto.
      * @param lbl Name of the label to jump to.
-     * @param expr The condition for jumping, or null for always.
+     * @param cond The condition for jumping, or null for always.
      */
-    IfGoto::IfGoto(std::string lbl, std::shared_ptr<Expression> expr):
+    IfGoto::IfGoto(std::shared_ptr<Reference> lbl, std::shared_ptr<Expression> cond):
         lbl(lbl),
-        expr(expr)
+        cond(cond)
     {}
 
     /**
@@ -1667,15 +1813,13 @@ namespace cqasm2 { namespace ast {
      * encapsulations for inputs;
      *  - calls free() on strings passed to it after constructing std::string
      * instances.
-     * @param lbl Name of the label to jump to. The passed pointer will be
-     * free()d by this constructor!
-     * @param expr The condition for jumping, or null for always.
+     * @param lbl Name of the label to jump to.
+     * @param cond The condition for jumping, or null for always.
      */
-    IfGoto::IfGoto(char * lbl, Expression * expr):
-        lbl(std::string(lbl)),
-        expr(std::shared_ptr<Expression>(expr))
+    IfGoto::IfGoto(Reference * lbl, Expression * cond):
+        lbl(std::shared_ptr<Reference>(lbl)),
+        cond(std::shared_ptr<Expression>(cond))
     {
-        free(lbl);
     }
 
     /**
@@ -1684,9 +1828,9 @@ namespace cqasm2 { namespace ast {
     IfGoto::operator std::string() const {
         std::ostringstream os;
         os << "IfGoto(";
-        os << lbl;
+        os << (lbl ? std::string(*lbl) : "NULL");
         os << ", ";
-        os << (expr ? std::string(*expr) : "NULL");
+        os << (cond ? std::string(*cond) : "NULL");
         os << ")";
         return os.str();
     }
@@ -2271,18 +2415,20 @@ namespace cqasm2 { namespace ast {
         os << (src ? std::string(*src) : "NULL");
         os << ", ";
         os << (dest ? std::string(*dest) : "NULL");
+        os << ", ";
+        os << unique;
         os << ")";
         return os.str();
     }
 
     /**
      * Constructor for MacroFor.
-     * @param name Name of the loop control variable.
+     * @param iter Name of the loop control variable.
      * @param indices Indices to iterate over.
      * @param blk Contents of the macro.
      */
-    MacroFor::MacroFor(std::string name, std::shared_ptr<IndexList> indices, std::shared_ptr<Block> blk):
-        name(name),
+    MacroFor::MacroFor(std::string iter, std::shared_ptr<IndexList> indices, std::shared_ptr<Block> blk):
+        iter(iter),
         indices(indices),
         blk(blk)
     {}
@@ -2294,17 +2440,17 @@ namespace cqasm2 { namespace ast {
      * encapsulations for inputs;
      *  - calls free() on strings passed to it after constructing std::string
      * instances.
-     * @param name Name of the loop control variable. The passed pointer will be
+     * @param iter Name of the loop control variable. The passed pointer will be
      * free()d by this constructor!
      * @param indices Indices to iterate over.
      * @param blk Contents of the macro.
      */
-    MacroFor::MacroFor(char * name, IndexList * indices, Block * blk):
-        name(std::string(name)),
+    MacroFor::MacroFor(char * iter, IndexList * indices, Block * blk):
+        iter(std::string(iter)),
         indices(std::shared_ptr<IndexList>(indices)),
         blk(std::shared_ptr<Block>(blk))
     {
-        free(name);
+        free(iter);
     }
 
     /**
@@ -2313,7 +2459,7 @@ namespace cqasm2 { namespace ast {
     MacroFor::operator std::string() const {
         std::ostringstream os;
         os << "MacroFor(";
-        os << name;
+        os << iter;
         os << ", ";
         os << (indices ? std::string(*indices) : "NULL");
         os << ", ";

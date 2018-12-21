@@ -138,18 +138,18 @@
 [0-9]*\.[0-9]+([eE][-+]?[0-9]+)?                    WITH_STR(LIT_DOUBLE);
 
     /* Fixed literals */
-0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+                     WITH_STR(LIT_FIXED_HEX);
-0[bB][01]*\.[01]+                                   WITH_STR(LIT_FIXED_BIN);
-0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+[uU]                 WITH_STR(LIT_UFIXED_HEX);
-0[bB][01]*\.[01]+[uU]                               WITH_STR(LIT_UFIXED_BIN);
+0[xX][0-9a-fA-F]*_*\._*[0-9a-fA-F]*                 WITH_STR(LIT_FIXED_HEX);
+0[bB][01]*_*\._*[01]*                               WITH_STR(LIT_FIXED_BIN);
+0[xX][0-9a-fA-F]*_*\._*[0-9a-fA-F]*[uU]             WITH_STR(LIT_UFIXED_HEX);
+0[bB][01]*_*\._*[01]*[uU]                           WITH_STR(LIT_UFIXED_BIN);
 
     /* The same with letters following, to detect errors */
 [0-9]+[uU]?[a-zA-Z_]                                WITHOUT_STR(BAD_NUMBER);
 0[xX][0-9a-fA-F]+[uU]?[a-zA-Z_]                     WITHOUT_STR(BAD_NUMBER);
 0[bB][01]+[uU]?[a-zA-Z_]                            WITHOUT_STR(BAD_NUMBER);
 [0-9]*\.[0-9]+([eE][-+]?[0-9]+)?[fF]?[a-zA-Z_]      WITHOUT_STR(BAD_NUMBER);
-0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+[uU]?[a-zA-Z_]       WITHOUT_STR(BAD_NUMBER);
-0[bB][01]*\.[01]+[uU]?[a-zA-Z_]                     WITHOUT_STR(BAD_NUMBER);
+0[xX][0-9a-fA-F]*_*\._*[0-9a-fA-F]*[uU]?[a-zA-Z_]   WITHOUT_STR(BAD_NUMBER);
+0[bB][01]*_*\._*[01]*[uU]?[a-zA-Z_]                 WITHOUT_STR(BAD_NUMBER);
 
     /* Named constant keywords */
 (?i:true|false|pi|eu|im)                            WITH_STR(LIT_NAMED);

@@ -15,16 +15,20 @@ derive: Node
 #include <vector>
 
 #include "node.hpp"
+#include "operators.hpp"
 
 using namespace cqasm2;
 
 namespace cqasm2 { namespace ast {
 
-### @header_leaf
-###         /**
-###          * Prints this node using cQASM syntax if possible.
-###          */
-###         virtual operator std::string() const override;
+@header_leaf
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 @header_foot
 }}
@@ -43,37 +47,35 @@ namespace cqasm2 { namespace ast {
 
 @classes
 
-
-Type:
-    / Represents any resource type token, such as "uint<64>".
-
-    TypeLiteral:
-        / Represents a type AST node, before constant folding to figure out the
-        / actual type used by the typesystem.
-
-        QubitType:
-            / Represents a qubit type token, i.e. "qubit".
-
-        NumericType: \
-                c bool has_sign Whether this is a signed or unsigned type. |\
-                &o Expression ibits Number of bits before the decimal separator. |\
-                &o Expression fbits Number of bits after the decimal separator.
-            / Represents a numeric type token, such as "uint<64>".
-
-        FloatType:
-            / Represents a float type token, i.e. "float".
-
-        DoubleType:
-            / Represents a double type token, i.e. "double".
-
-    ### ParsedType: \
-    ###         c cqasm2::typesystem::Type typ Parsed type. |\
-    ###         &o TypeLiteral Original AST node that was used to construct this literal.
-    ###     / Represents a parsed type.
-
-
 Operand:
     / Represents any operand.
+
+    Type:
+        / Represents any resource type token, such as "uint<64>".
+
+        TypeLiteral:
+            / Represents a type AST node, before constant folding to figure out the
+            / actual type used by the typesystem.
+
+            QubitType:
+                / Represents a qubit type token, i.e. "qubit".
+
+            NumericType: \
+                    c bool has_sign Whether this is a signed or unsigned type. |\
+                    &o Expression ibits Number of bits before the decimal separator. |\
+                    &o Expression fbits Number of bits after the decimal separator.
+                / Represents a numeric type token, such as "uint<64>".
+
+            FloatType:
+                / Represents a float type token, i.e. "float".
+
+            DoubleType:
+                / Represents a double type token, i.e. "double".
+
+        ### ParsedType: \
+        ###         c cqasm2::typesystem::Type typ Parsed type. |\
+        ###         &o TypeLiteral Original AST node that was used to construct this literal.
+        ###     / Represents a parsed type.
 
     Expression:
         / Represents any expression.
@@ -109,36 +111,43 @@ Operand:
         ###     / always print a representation of val, but may use the original
         ###     / AST node to choose between equivalent representations.
 
-        Identifier: \
-                c std::string name Identifier.
-            / Represents any identifier in an expression. This can ultimately
-            / resolve to almost anything (like a label) or not be resolved at
-            / all, at the discretion of the context which the expression is
-            / used in.
+        ArrayLiteral: \
+                &c ExpressionList data Data contained within the array literal.
+            / Represents array literals.
 
-        ResourceRef: \
-                &c Resource res Resolved resource. |\
-                &o Identifier id Original identifier that was used for this reference, if any.
-            / Represents an identifier that was resolved to a resource. When
-            / printing, the uniquified name of the resource is used.
+        Reference:
+            / Represents identifier-based references.
 
-        MacroParamRef: \
-                &c MacroDef macro Macro definition this parameter was resolved to. |\
-                c int param Parameter index. |\
-                &o Identifier id Original identifier that was used for this reference, if any.
-            / Represents an identifier that was resolved to one of the
-            / parameters of a macro def statement.
+            Identifier: \
+                    c std::string name Identifier.
+                / Represents any identifier in an expression. This can ultimately
+                / resolve to almost anything (like a label) or not be resolved at
+                / all, at the discretion of the context which the expression is
+                / used in.
 
-        MacroIterRef: \
-                &c MacroFor macro For loop that this parameter was resolved to. |\
-                &o Identifier id Original identifier that was used for this reference, if any.
-            / Represents an identifier that was resolved to the loop variable
-            / of a macro for statement.
+            ResourceRef: \
+                    &c Resource res Resolved resource. |\
+                    &o Identifier id Original identifier that was used for this reference, if any.
+                / Represents an identifier that was resolved to a resource. When
+                / printing, the uniquified name of the resource is used.
 
-        LabelRef: \
-                &c Label lbl Label that this identifier was resolved to. |\
-                &o Identifier id Original identifier that was used for this reference, if any.
-            / Represents an identifier that was resolved to a label.
+            MacroParamRef: \
+                    &c MacroDef macro Macro definition this parameter was resolved to. |\
+                    c int param Parameter index. |\
+                    &o Identifier id Original identifier that was used for this reference, if any.
+                / Represents an identifier that was resolved to one of the
+                / parameters of a macro def statement.
+
+            MacroIterRef: \
+                    &c MacroFor macro For loop that this parameter was resolved to. |\
+                    &o Identifier id Original identifier that was used for this reference, if any.
+                / Represents an identifier that was resolved to the loop variable
+                / of a macro for statement.
+
+            LabelRef: \
+                    &c Label lbl Label that this identifier was resolved to. |\
+                    &o Identifier id Original identifier that was used for this reference, if any.
+                / Represents an identifier that was resolved to a label.
 
         Subscript: \
                 &c Expression expr Expression to disambiguate with subscript notation. |\
@@ -153,10 +162,16 @@ Operand:
             / Represents an index notation, i.e. of the form "a[b]".
 
         Operation: \
-                c bool fun Whether this is a function call (true) or an inline operator (false). |\
-                c std::string oper Operator or function name. |\
+                sc operator_t oper Operator description. |\
+                &c Expression op1 Operand 1. |\
+                &o Expression op2 Operand 2, or null if unary. |\
+                &o Expression op3 Operand 3, or null if unary/binary.
+            / Represents an operator.
+
+        Function: \
+                c std::string name Function name. |\
                 &c ExpressionList ops Operand list.
-            / Represents any kind of operation.
+            / Represents a function call.
 
         TypeCast: \
                 &c Type typ Type to cast to. |\
@@ -246,8 +261,8 @@ Gate:
             / Represents a normal gate, expressed as an instruction.
 
         IfGoto: \
-                c std::string lbl Name of the label to jump to. |\
-                &o Expression expr The condition for jumping, or null for always.
+                &c Reference lbl Name of the label to jump to. |\
+                &o Expression cond The condition for jumping, or null for always.
             / Represents the syntactic sugar if-goto notation for branches.
 
     ### JsonGate: \
@@ -269,7 +284,7 @@ Statement: \
         / Represents a pragma statement.
 
     Resource: \
-            - std::string unique Uniquified name.
+            - std::string unique Uniquified name. This must be set when anything is set to refer to this resource.
         / Represents a statement that declares a resource.
 
         QubitRegister1: \
@@ -308,11 +323,12 @@ Statement: \
             c std::string name Name of the macro subroutine. |\
             &c Block blk Contents of the macro. |\
             &o IdentifierList src Source parameter names. |\
-            &o IdentifierList dest Destination parameter names.
+            &o IdentifierList dest Destination parameter names. |\
+            - std::string unique Uniquified name. This must be set when anything is set to refer to this resource.
         / Represents a macro subroutine.
 
     MacroFor: \
-            c std::string name Name of the loop control variable. |\
+            c std::string iter Name of the loop control variable. |\
             &c IndexList indices Indices to iterate over. |\
             &c Block blk Contents of the macro.
         / Represents a macro for loop.
@@ -334,7 +350,7 @@ Statement: \
 
     Label: \
             c std::string name Label name. |\
-            - std::string unique Uniquified name.
+            - std::string unique Uniquified name. This must be set before anything is set to refer to this label.
         / Represents a label for classical flow control.
 
     Bundle: \

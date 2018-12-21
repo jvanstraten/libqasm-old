@@ -8,28 +8,23 @@
 #include <vector>
 
 #include "node.hpp"
+#include "operators.hpp"
 
 using namespace cqasm2;
 
 namespace cqasm2 { namespace ast {
 
 
-
-
-
-
-
-
     /*
      * Forward declarations for all classes defined here.
      */
+    class Operand;                       // Abstract, use derived classes.
     class Type;                          // Abstract, use derived classes.
     class TypeLiteral;                   // Abstract, use derived classes.
     class QubitType;
     class NumericType;
     class FloatType;
     class DoubleType;
-    class Operand;                       // Abstract, use derived classes.
     class Expression;                    // Abstract, use derived classes.
     class NumericLiteral;                // Abstract, use derived classes.
     class DecLiteral;
@@ -37,6 +32,8 @@ namespace cqasm2 { namespace ast {
     class BinLiteral;
     class FloatLiteral;
     class NamedLiteral;
+    class ArrayLiteral;
+    class Reference;                     // Abstract, use derived classes.
     class Identifier;
     class ResourceRef;
     class MacroParamRef;
@@ -45,6 +42,7 @@ namespace cqasm2 { namespace ast {
     class Subscript;
     class Indexation;
     class Operation;
+    class Function;
     class TypeCast;
     class ShiftCast;
     class ErroneousExpression;
@@ -87,9 +85,32 @@ namespace cqasm2 { namespace ast {
     class Program;
 
     /**
+     * Represents any operand.
+     */
+    class Operand : public Node {
+    public:
+
+        /**
+         * Constructor for Operand.
+         */
+        Operand();
+
+        /**
+         * Default destructor for Operand.
+         */
+        virtual ~Operand() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+    };
+
+    /**
      * Represents any resource type token, such as "uint<64>".
      */
-    class Type : public Node {
+    class Type : public Operand {
     public:
 
         /**
@@ -153,6 +174,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -234,6 +263,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -257,6 +294,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -282,29 +327,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
-
-    };
-
-    /**
-     * Represents any operand.
-     */
-    class Operand : public Node {
-    public:
-
         /**
-         * Constructor for Operand.
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
          */
-        Operand();
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
-        /**
-         * Default destructor for Operand.
-         */
-        virtual ~Operand() = default;
-
-        /**
-         * Converts to a "ClassName(...)" string for debugging.
-         */
-        virtual operator std::string() const override;
 
     };
 
@@ -393,6 +423,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -434,6 +472,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -477,6 +523,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -518,6 +572,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -561,6 +623,86 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
+
+    };
+
+    /**
+     * Represents array literals.
+     */
+    class ArrayLiteral : public Expression {
+    public:
+
+        /**
+         * Data contained within the array literal.
+         */
+        std::shared_ptr<ExpressionList> data;
+
+        /**
+         * Constructor for ArrayLiteral.
+         * @param data Data contained within the array literal.
+         */
+        ArrayLiteral(std::shared_ptr<ExpressionList> data);
+
+        /**
+         * Constructor for ArrayLiteral, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param data Data contained within the array literal.
+         */
+        ArrayLiteral(ExpressionList * data);
+
+        /**
+         * Default destructor for ArrayLiteral.
+         */
+        virtual ~ArrayLiteral() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
+
+    };
+
+    /**
+     * Represents identifier-based references.
+     */
+    class Reference : public Expression {
+    public:
+
+        /**
+         * Constructor for Reference.
+         */
+        Reference();
+
+        /**
+         * Default destructor for Reference.
+         */
+        virtual ~Reference() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
 
     };
 
@@ -569,7 +711,7 @@ namespace cqasm2 { namespace ast {
      * to almost anything (like a label) or not be resolved at all, at the
      * discretion of the context which the expression is used in.
      */
-    class Identifier : public Expression {
+    class Identifier : public Reference {
     public:
 
         /**
@@ -605,6 +747,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -612,7 +762,7 @@ namespace cqasm2 { namespace ast {
      * Represents an identifier that was resolved to a resource. When printing,
      * the uniquified name of the resource is used.
      */
-    class ResourceRef : public Expression {
+    class ResourceRef : public Reference {
     public:
 
         /**
@@ -673,6 +823,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -680,7 +838,7 @@ namespace cqasm2 { namespace ast {
      * Represents an identifier that was resolved to one of the parameters of a
      * macro def statement.
      */
-    class MacroParamRef : public Expression {
+    class MacroParamRef : public Reference {
     public:
 
         /**
@@ -750,6 +908,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -757,7 +923,7 @@ namespace cqasm2 { namespace ast {
      * Represents an identifier that was resolved to the loop variable of a
      * macro for statement.
      */
-    class MacroIterRef : public Expression {
+    class MacroIterRef : public Reference {
     public:
 
         /**
@@ -818,13 +984,21 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
     /**
      * Represents an identifier that was resolved to a label.
      */
-    class LabelRef : public Expression {
+    class LabelRef : public Reference {
     public:
 
         /**
@@ -885,6 +1059,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -936,6 +1118,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -984,38 +1174,49 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
     /**
-     * Represents any kind of operation.
+     * Represents an operator.
      */
     class Operation : public Expression {
     public:
 
         /**
-         * Whether this is a function call (true) or an inline operator (false).
+         * Operator description.
          */
-        bool fun;
+        operator_t oper;
 
         /**
-         * Operator or function name.
+         * Operand 1.
          */
-        std::string oper;
+        std::shared_ptr<Expression> op1;
 
         /**
-         * Operand list.
+         * Operand 2, or null if unary.
          */
-        std::shared_ptr<ExpressionList> ops;
+        std::shared_ptr<Expression> op2;
+
+        /**
+         * Operand 3, or null if unary/binary.
+         */
+        std::shared_ptr<Expression> op3;
 
         /**
          * Constructor for Operation.
-         * @param fun Whether this is a function call (true) or an inline
-         * operator (false).
-         * @param oper Operator or function name.
-         * @param ops Operand list.
+         * @param oper Operator description.
+         * @param op1 Operand 1.
          */
-        Operation(bool fun, std::string oper, std::shared_ptr<ExpressionList> ops);
+        Operation(operator_t oper, std::shared_ptr<Expression> op1);
 
         /**
          * Constructor for Operation, intended to be used from YACC only. This
@@ -1024,13 +1225,54 @@ namespace cqasm2 { namespace ast {
          * std::shared_ptr<> encapsulations for inputs;
          *  - calls free() on strings passed to it after constructing
          * std::string instances.
-         * @param fun Whether this is a function call (true) or an inline
-         * operator (false).
-         * @param oper Operator or function name. The passed pointer will be
-         * free()d by this constructor!
-         * @param ops Operand list.
+         * @param oper Operator description.
+         * @param op1 Operand 1.
          */
-        Operation(bool fun, char * oper, ExpressionList * ops);
+        Operation(operator_t oper, Expression * op1);
+
+        /**
+         * Constructor for Operation.
+         * @param oper Operator description.
+         * @param op1 Operand 1.
+         * @param op2 Operand 2, or null if unary.
+         */
+        Operation(operator_t oper, std::shared_ptr<Expression> op1, std::shared_ptr<Expression> op2);
+
+        /**
+         * Constructor for Operation, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param oper Operator description.
+         * @param op1 Operand 1.
+         * @param op2 Operand 2, or null if unary.
+         */
+        Operation(operator_t oper, Expression * op1, Expression * op2);
+
+        /**
+         * Constructor for Operation.
+         * @param oper Operator description.
+         * @param op1 Operand 1.
+         * @param op2 Operand 2, or null if unary.
+         * @param op3 Operand 3, or null if unary/binary.
+         */
+        Operation(operator_t oper, std::shared_ptr<Expression> op1, std::shared_ptr<Expression> op2, std::shared_ptr<Expression> op3);
+
+        /**
+         * Constructor for Operation, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param oper Operator description.
+         * @param op1 Operand 1.
+         * @param op2 Operand 2, or null if unary.
+         * @param op3 Operand 3, or null if unary/binary.
+         */
+        Operation(operator_t oper, Expression * op1, Expression * op2, Expression * op3);
 
         /**
          * Default destructor for Operation.
@@ -1041,6 +1283,71 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
+
+    };
+
+    /**
+     * Represents a function call.
+     */
+    class Function : public Expression {
+    public:
+
+        /**
+         * Function name.
+         */
+        std::string name;
+
+        /**
+         * Operand list.
+         */
+        std::shared_ptr<ExpressionList> ops;
+
+        /**
+         * Constructor for Function.
+         * @param name Function name.
+         * @param ops Operand list.
+         */
+        Function(std::string name, std::shared_ptr<ExpressionList> ops);
+
+        /**
+         * Constructor for Function, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Function name. The passed pointer will be free()d by this
+         * constructor!
+         * @param ops Operand list.
+         */
+        Function(char * name, ExpressionList * ops);
+
+        /**
+         * Default destructor for Function.
+         */
+        virtual ~Function() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -1089,6 +1396,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -1148,6 +1463,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1172,6 +1495,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -1243,6 +1574,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1288,6 +1627,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1330,6 +1677,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1371,6 +1726,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -1415,6 +1778,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1458,6 +1829,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1493,6 +1872,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -1563,6 +1950,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1606,6 +2001,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1634,6 +2037,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -1718,6 +2129,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1778,6 +2197,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -1941,6 +2368,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -1953,18 +2388,18 @@ namespace cqasm2 { namespace ast {
         /**
          * Name of the label to jump to.
          */
-        std::string lbl;
+        std::shared_ptr<Reference> lbl;
 
         /**
          * The condition for jumping, or null for always.
          */
-        std::shared_ptr<Expression> expr;
+        std::shared_ptr<Expression> cond;
 
         /**
          * Constructor for IfGoto.
          * @param lbl Name of the label to jump to.
          */
-        IfGoto(std::string lbl);
+        IfGoto(std::shared_ptr<Reference> lbl);
 
         /**
          * Constructor for IfGoto, intended to be used from YACC only. This
@@ -1973,17 +2408,16 @@ namespace cqasm2 { namespace ast {
          * std::shared_ptr<> encapsulations for inputs;
          *  - calls free() on strings passed to it after constructing
          * std::string instances.
-         * @param lbl Name of the label to jump to. The passed pointer will be
-         * free()d by this constructor!
+         * @param lbl Name of the label to jump to.
          */
-        IfGoto(char * lbl);
+        IfGoto(Reference * lbl);
 
         /**
          * Constructor for IfGoto.
          * @param lbl Name of the label to jump to.
-         * @param expr The condition for jumping, or null for always.
+         * @param cond The condition for jumping, or null for always.
          */
-        IfGoto(std::string lbl, std::shared_ptr<Expression> expr);
+        IfGoto(std::shared_ptr<Reference> lbl, std::shared_ptr<Expression> cond);
 
         /**
          * Constructor for IfGoto, intended to be used from YACC only. This
@@ -1992,11 +2426,10 @@ namespace cqasm2 { namespace ast {
          * std::shared_ptr<> encapsulations for inputs;
          *  - calls free() on strings passed to it after constructing
          * std::string instances.
-         * @param lbl Name of the label to jump to. The passed pointer will be
-         * free()d by this constructor!
-         * @param expr The condition for jumping, or null for always.
+         * @param lbl Name of the label to jump to.
+         * @param cond The condition for jumping, or null for always.
          */
-        IfGoto(char * lbl, Expression * expr);
+        IfGoto(Reference * lbl, Expression * cond);
 
         /**
          * Default destructor for IfGoto.
@@ -2007,6 +2440,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -2055,6 +2496,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -2139,6 +2588,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -2149,7 +2606,8 @@ namespace cqasm2 { namespace ast {
     public:
 
         /**
-         * Uniquified name.
+         * Uniquified name. This must be set when anything is set to refer to
+         * this resource.
          */
         std::string unique;
 
@@ -2207,6 +2665,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -2283,6 +2749,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -2369,6 +2843,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -2417,6 +2899,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -2485,6 +2975,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -2533,6 +3031,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -2561,6 +3067,12 @@ namespace cqasm2 { namespace ast {
          * Destination parameter names.
          */
         std::shared_ptr<IdentifierList> dest;
+
+        /**
+         * Uniquified name. This must be set when anything is set to refer to
+         * this resource.
+         */
+        std::string unique;
 
         /**
          * Constructor for MacroDef.
@@ -2638,6 +3150,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -2650,7 +3170,7 @@ namespace cqasm2 { namespace ast {
         /**
          * Name of the loop control variable.
          */
-        std::string name;
+        std::string iter;
 
         /**
          * Indices to iterate over.
@@ -2664,11 +3184,11 @@ namespace cqasm2 { namespace ast {
 
         /**
          * Constructor for MacroFor.
-         * @param name Name of the loop control variable.
+         * @param iter Name of the loop control variable.
          * @param indices Indices to iterate over.
          * @param blk Contents of the macro.
          */
-        MacroFor(std::string name, std::shared_ptr<IndexList> indices, std::shared_ptr<Block> blk);
+        MacroFor(std::string iter, std::shared_ptr<IndexList> indices, std::shared_ptr<Block> blk);
 
         /**
          * Constructor for MacroFor, intended to be used from YACC only. This
@@ -2677,12 +3197,12 @@ namespace cqasm2 { namespace ast {
          * std::shared_ptr<> encapsulations for inputs;
          *  - calls free() on strings passed to it after constructing
          * std::string instances.
-         * @param name Name of the loop control variable. The passed pointer
+         * @param iter Name of the loop control variable. The passed pointer
          * will be free()d by this constructor!
          * @param indices Indices to iterate over.
          * @param blk Contents of the macro.
          */
-        MacroFor(char * name, IndexList * indices, Block * blk);
+        MacroFor(char * iter, IndexList * indices, Block * blk);
 
         /**
          * Default destructor for MacroFor.
@@ -2693,6 +3213,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -2768,6 +3296,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -2808,6 +3344,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -2876,6 +3420,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -2891,7 +3443,8 @@ namespace cqasm2 { namespace ast {
         std::string name;
 
         /**
-         * Uniquified name.
+         * Uniquified name. This must be set before anything is set to refer to
+         * this label.
          */
         std::string unique;
 
@@ -2922,6 +3475,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -2974,6 +3535,14 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const override;
 
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
+
 
     };
 
@@ -2998,6 +3567,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -3041,6 +3618,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
@@ -3087,6 +3672,14 @@ namespace cqasm2 { namespace ast {
          * Converts to a "ClassName(...)" string for debugging.
          */
         virtual operator std::string() const override;
+
+        /**
+         * Pretty-print to the given output stream with the given indentation
+         * level.
+         * @param os Stream to output to.
+         * @param opts Structure containing printing options.
+         */
+        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
 
 
     };
