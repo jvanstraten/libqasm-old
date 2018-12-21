@@ -1,6 +1,7 @@
 %{
     #include <cstdlib>
     #include <string>
+    #include <iostream>
     #include <string.h>
     #include "cqasm2/ast/ast.hpp"
     int yyerror(char const *s);
@@ -307,7 +308,7 @@ AnnotGate       : AnnotGate '@' AnnotationData                                  
 
 /* Single-line bundling syntax. */
 SLParGateList   : SLParGateList '|' AnnotGate                                   { $$ = $1->push_gate($3); }
-                | AnnotGate %prec '|'                                           { $$ = new Bundle(); }
+                | AnnotGate %prec '|'                                           { $$ = (new Bundle())->push_gate($1); }
                 ;
 
 /* Multi-line bundling syntax. */
@@ -357,8 +358,8 @@ Block           : '{' OptNewline StatementList OptNewline '}'                   
                 ;
 
 /* Toplevel. */
-Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = new Program($2, $4); }
-                | OptNewline VERSION OptNewline                                 { $$ = new Program($2, new Block()); }
+Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = new Program($2, $4); std::cout << std::string(*$$) << std::endl; }
+                | OptNewline VERSION OptNewline                                 { $$ = new Program($2, new Block()); std::cout << std::string(*$$) << std::endl; }
                 ;
 
 

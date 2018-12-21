@@ -14,18 +14,24 @@ using namespace cqasm2;
 namespace cqasm2 { namespace ast {
 
 
+
+
+
+
+
+
     /*
      * Forward declarations for all classes defined here.
      */
-    class Type;
-    class TypeLiteral;
+    class Type;                          // Abstract, use derived classes.
+    class TypeLiteral;                   // Abstract, use derived classes.
     class QubitType;
     class NumericType;
     class FloatType;
     class DoubleType;
-    class Operand;
-    class Expression;
-    class NumericLiteral;
+    class Operand;                       // Abstract, use derived classes.
+    class Expression;                    // Abstract, use derived classes.
+    class NumericLiteral;                // Abstract, use derived classes.
     class DecLiteral;
     class HexLiteral;
     class BinLiteral;
@@ -42,7 +48,7 @@ namespace cqasm2 { namespace ast {
     class TypeCast;
     class ShiftCast;
     class ErroneousExpression;
-    class MatrixLiteral;
+    class MatrixLiteral;                 // Abstract, use derived classes.
     class MatrixLiteral1;
     class MatrixLiteral2;
     class StringLiteral;
@@ -55,14 +61,14 @@ namespace cqasm2 { namespace ast {
     class StringBuilder;
     class AnnotationData;
     class GateType;
-    class Gate;
-    class UnresolvedGate;
+    class Gate;                          // Abstract, use derived classes.
+    class UnresolvedGate;                // Abstract, use derived classes.
     class NormalGate;
     class IfGoto;
     class MacroCall;
-    class Statement;
+    class Statement;                     // Abstract, use derived classes.
     class Pragma;
-    class Resource;
+    class Resource;                      // Abstract, use derived classes.
     class QubitRegister1;
     class ScalarResource;
     class ArrayResource;
@@ -96,6 +102,11 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~Type() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
     };
 
     /**
@@ -115,6 +126,11 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~TypeLiteral() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
     };
 
     /**
@@ -132,6 +148,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for QubitType.
          */
         virtual ~QubitType() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -207,6 +229,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~NumericType() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -224,6 +252,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for FloatType.
          */
         virtual ~FloatType() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -243,6 +277,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~DoubleType() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -260,6 +300,11 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Operand.
          */
         virtual ~Operand() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
 
     };
 
@@ -279,6 +324,11 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~Expression() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
     };
 
     /**
@@ -296,6 +346,11 @@ namespace cqasm2 { namespace ast {
          * Default destructor for NumericLiteral.
          */
         virtual ~NumericLiteral() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
 
     };
 
@@ -333,6 +388,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~DecLiteral() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -368,6 +429,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for HexLiteral.
          */
         virtual ~HexLiteral() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -405,6 +472,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~BinLiteral() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -441,6 +514,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~FloatLiteral() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -476,6 +555,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for NamedLiteral.
          */
         virtual ~NamedLiteral() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -514,6 +599,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Identifier.
          */
         virtual ~Identifier() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -576,6 +667,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for ResourceRef.
          */
         virtual ~ResourceRef() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -648,6 +745,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~MacroParamRef() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -710,6 +813,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~MacroIterRef() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -771,6 +880,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~LabelRef() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -816,6 +931,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~Subscript() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -857,6 +978,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Indexation.
          */
         virtual ~Indexation() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -910,6 +1037,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~Operation() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -951,6 +1084,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for TypeCast.
          */
         virtual ~TypeCast() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -1004,6 +1143,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~ShiftCast() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1023,6 +1168,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~ErroneousExpression() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1040,6 +1191,11 @@ namespace cqasm2 { namespace ast {
          * Default destructor for MatrixLiteral.
          */
         virtual ~MatrixLiteral() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
 
     };
 
@@ -1082,6 +1238,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~MatrixLiteral1() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1121,6 +1283,12 @@ namespace cqasm2 { namespace ast {
          */
         MatrixLiteral2 *push_row(ExpressionList * row);
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1157,6 +1325,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~StringLiteral() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1192,6 +1366,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for JsonLiteral.
          */
         virtual ~JsonLiteral() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -1230,6 +1410,12 @@ namespace cqasm2 { namespace ast {
          */
         ExpressionList *push_expr(Expression * expr);
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1267,6 +1453,12 @@ namespace cqasm2 { namespace ast {
          */
         OperandList *push_oper(Operand * oper);
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1296,6 +1488,12 @@ namespace cqasm2 { namespace ast {
          * @return this, to allow chaining.
          */
         IdentifierList *push_id(std::string id);
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -1360,6 +1558,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~IndexEntry() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1397,6 +1601,12 @@ namespace cqasm2 { namespace ast {
          */
         IndexList *push_ent(IndexEntry * ent);
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1419,6 +1629,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for StringBuilder.
          */
         virtual ~StringBuilder() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -1497,6 +1713,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~AnnotationData() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1552,6 +1774,12 @@ namespace cqasm2 { namespace ast {
          */
         GateType *push_cond(Expression * cond);
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1569,6 +1797,11 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Gate.
          */
         virtual ~Gate() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
 
     };
 
@@ -1606,6 +1839,11 @@ namespace cqasm2 { namespace ast {
          * @return this, to allow chaining.
          */
         UnresolvedGate *push_annot(AnnotationData * annot);
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
 
     };
 
@@ -1698,6 +1936,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~NormalGate() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1759,6 +2003,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~IfGoto() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1801,6 +2051,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~MacroCall() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1838,6 +2094,11 @@ namespace cqasm2 { namespace ast {
          */
         Statement *push_annot(AnnotationData * annot);
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
     };
 
     /**
@@ -1873,6 +2134,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~Pragma() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -1895,6 +2162,11 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Resource.
          */
         virtual ~Resource() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
 
     };
 
@@ -1930,6 +2202,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for QubitRegister1.
          */
         virtual ~QubitRegister1() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2000,6 +2278,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for ScalarResource.
          */
         virtual ~ScalarResource() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2080,6 +2364,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~ArrayResource() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -2122,6 +2412,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for LetStatement.
          */
         virtual ~LetStatement() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2184,6 +2480,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~Mapping() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -2225,6 +2527,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Assignment.
          */
         virtual ~Assignment() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2325,6 +2633,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~MacroDef() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -2374,6 +2688,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for MacroFor.
          */
         virtual ~MacroFor() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2443,6 +2763,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~MacroIfElse() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -2477,6 +2803,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Include.
          */
         virtual ~Include() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2539,6 +2871,12 @@ namespace cqasm2 { namespace ast {
          */
         virtual ~Subcircuit() = default;
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -2579,6 +2917,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Label.
          */
         virtual ~Label() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2625,6 +2969,12 @@ namespace cqasm2 { namespace ast {
          */
         Bundle *push_gates(std::vector<std::shared_ptr<Gate>> & gates);
 
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
+
     };
 
     /**
@@ -2643,6 +2993,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for ErroneousStatement.
          */
         virtual ~ErroneousStatement() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2680,6 +3036,12 @@ namespace cqasm2 { namespace ast {
          * @return this, to allow chaining.
          */
         Block *push_stmt(Statement * stmt);
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 
@@ -2720,6 +3082,12 @@ namespace cqasm2 { namespace ast {
          * Default destructor for Program.
          */
         virtual ~Program() = default;
+
+        /**
+         * Converts to a "ClassName(...)" string for debugging.
+         */
+        virtual operator std::string() const override;
+
 
     };
 

@@ -146,6 +146,35 @@ class Member(object):
             name = "%ss" % name
         return name
 
+    def elem_to_ostream(self, s):
+        if self.is_string():
+            return s
+        if self.is_shared_ptr():
+            return "(%s ? std::string(*%s) : \"NULL\")" % (s, s)
+        if "s" in self._attrib:
+            return "std::string(%s)" % s
+        return s
+
+    def debug_to_ostream(self):
+        if "n" in self._attrib:
+            return []
+        name = self.member_name()
+        if self.is_vector():
+            return [
+                '        os << "[";',
+                '        for (auto it = this->%s.begin(); it != %s.end(); ) {' % (name, name),
+                '            os << %s;' % self.elem_to_ostream("*it"),
+                '            it++;',
+                '            if (it != %s.end()) {' % name,
+                '                os << ", ";',
+                '            }',
+                '        }',
+                '        os << "]";'
+            ]
+        else:
+            return ['        os << %s;' % self.elem_to_ostream(name)]
+        return ["os << %s;" % name]
+
 
 class Class(object):
     def __init__(self, name, parent):
@@ -158,12 +187,15 @@ class Class(object):
 
     def classlist(self):
         s = []
-        s.append("    class %s;" % self.name)
+        cls = "    class %s;" % self.name
+        if self.children:
+            cls = "%-40s // Abstract, use derived classes." % cls
+        s.append(cls)
         for c in self.children:
             s.append(c.classlist())
         return "\n".join(s)
 
-    def generate(self, properties):
+    def generate(self, properties, header_leaf):
         hdr = []
         src = []
 
@@ -177,12 +209,13 @@ class Class(object):
         else:
             hdr.append("    class %s {" % (self.name))
         hdr.append("    public:")
+        hdr.append("")
 
         # Class members declarations.
         for member in self.members:
-            hdr.append("")
             hdr.append(comment(2, [member.member_doc()]))
             hdr.append("        %s %s;" % (member.member_type(), member.member_name()))
+            hdr.append("")
 
         # Constructor(s).
         need_more_cons = True
@@ -226,12 +259,11 @@ class Class(object):
                         pointer_frees.append("        free(%s);" % name)
 
             # Regular constructor; header.
-            hdr.append("")
             hdr.append(comment(2, normal_doc))
             hdr.append("        %s(%s);" % (self.name, ", ".join(normal_args)))
+            hdr.append("")
 
             # Regular constructor; source.
-            src.append("")
             src.append(comment(1, normal_doc))
             if normal_inits:
                 src.append("    %s::%s(%s):" % (self.name, self.name, ", ".join(normal_args)))
@@ -240,15 +272,15 @@ class Class(object):
             else:
                 src.append("    %s::%s(%s) {" % (self.name, self.name, ", ".join(normal_args)))
                 src.append("    }")
+            src.append("")
 
             if normal_args != pointer_args:
                 # Pointer constructor; header.
-                hdr.append("")
                 hdr.append(comment(2, pointer_doc))
                 hdr.append("        %s(%s);" % (self.name, ", ".join(pointer_args)))
+                hdr.append("")
 
                 # Pointer constructor; source.
-                src.append("")
                 src.append(comment(1, pointer_doc))
                 if pointer_inits:
                     src.append("    %s::%s(%s):" % (self.name, self.name, ", ".join(pointer_args)))
@@ -259,11 +291,12 @@ class Class(object):
                 else:
                     src.append("    %s::%s(%s)" % (self.name, self.name, ", ".join(pointer_args)))
                     src.append("    {}")
+                src.append("")
 
         # Destructor.
-        hdr.append("")
         hdr.append(comment(2, ["Default destructor for %s." % self.name]))
         hdr.append("        virtual ~%s() = default;" % (self.name))
+        hdr.append("")
 
         # Push functions for vectors.
         for member in self.members:
@@ -274,28 +307,28 @@ class Class(object):
                     "@return this, to allow chaining."
                 ]
 
-                hdr.append("")
                 hdr.append(comment(2, doc))
                 hdr.append("        %s *push_%s(%s %s);" % (self.name, member.push_name(), member.push_type(), member.push_name()))
+                hdr.append("")
 
-                src.append("")
                 src.append(comment(1, doc))
                 src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.push_name(), member.push_type(), member.push_name()))
                 src.append("        this->%s.push_back(%s);" % (member.member_name(), member.push_name()));
                 src.append("        return this;")
                 src.append("    }")
+                src.append("")
 
                 if member.is_shared_ptr():
-                    hdr.append("")
                     hdr.append(comment(2, doc))
                     hdr.append("        %s *push_%s(%s %s);" % (self.name, member.push_name(), member.push_type_ptr(), member.push_name()))
+                    hdr.append("")
 
-                    src.append("")
                     src.append(comment(1, doc))
                     src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.push_name(), member.push_type_ptr(), member.push_name()))
                     src.append("        this->%s.push_back(%s);" % (member.member_name(), member.push_make_shared(member.push_name())));
                     src.append("        return this;")
                     src.append("    }")
+                    src.append("")
 
                 if member.has_vec_push():
                     doc = [
@@ -304,22 +337,46 @@ class Class(object):
                         "@return this, to allow chaining."
                     ]
 
-                    hdr.append("")
                     hdr.append(comment(2, doc))
                     hdr.append("        %s *push_%s(%s %s);" % (self.name, member.vec_push_name(), member.vec_push_type(), member.vec_push_name()))
+                    hdr.append("")
 
-                    src.append("")
                     src.append(comment(1, doc))
                     src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.vec_push_name(), member.vec_push_type(), member.vec_push_name()))
                     src.append("        this->%s.insert(this->%s.end(), %s.begin(), %s.end());" % (member.member_name(), member.member_name(), member.vec_push_name(), member.vec_push_name()))
                     src.append("        return this;")
                     src.append("    }")
+                    src.append("")
 
+        # Conversion to string (for debugging).
+        doc = ["Converts to a \"ClassName(...)\" string for debugging."]
+
+        hdr.append(comment(2, doc))
+        hdr.append("        virtual operator std::string() const override;")
         hdr.append("")
+
+        src.append(comment(1, doc))
+        src.append("    %s::operator std::string() const {" % self.name)
+        src.append("        std::ostringstream os;")
+        src.append("        os << \"%s(\";" % self.name)
+        for i in range(len(self.members)):
+            src.extend(self.members[i].debug_to_ostream())
+            if i < len(self.members) - 1:
+                src.append("        os << \", \";")
+        src.append("        os << \")\";")
+        src.append("        return os.str();")
+        src.append("    }")
+        src.append("")
+
+        # Custom function declarations.
+        if not self.children:
+            hdr.extend(header_leaf);
+            hdr.append("")
+
         hdr.append("    };")
         hdr.append("")
         for c in self.children:
-            h, s = c.generate(properties)
+            h, s = c.generate(properties, header_leaf)
             hdr.append(h)
             src.append(s)
         return "\n".join(hdr), "\n".join(src)
@@ -338,6 +395,7 @@ data = list(enumerate(map(lambda line: line.split("###")[0].rstrip(), data.split
 mode = None
 properties = {}
 header_head = []
+header_leaf = []
 header_foot = []
 source_head = []
 source_foot = []
@@ -358,6 +416,8 @@ for i, line in data:
             properties[key.strip()] = value.strip()
         elif mode == "header_head":
             header_head.append(line)
+        elif mode == "header_leaf":
+            header_leaf.append(line)
         elif mode == "header_foot":
             header_foot.append(line)
         elif mode == "source_head":
@@ -405,7 +465,7 @@ for i, line in data:
 hdr = []
 src = []
 for cls in toplevel:
-    h, s = cls.generate(properties)
+    h, s = cls.generate(properties, header_leaf)
     hdr.append(h)
     src.append(s)
 

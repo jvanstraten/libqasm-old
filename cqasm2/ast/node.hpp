@@ -85,7 +85,7 @@ namespace cqasm2 { namespace ast {
         /**
          * Prints this node using cQASM syntax if possible.
          */
-        //virtual operator std::string() const = 0;
+        virtual operator std::string() const = 0;
 
     };
 

@@ -20,6 +20,12 @@ using namespace cqasm2;
 
 namespace cqasm2 { namespace ast {
 
+### @header_leaf
+###         /**
+###          * Prints this node using cQASM syntax if possible.
+###          */
+###         virtual operator std::string() const override;
+
 @header_foot
 }}
 
@@ -212,7 +218,7 @@ IndexList: \
     / Represents a list of indices.
 
 StringBuilder: \
-        - std::ostringstream os String builder to append to.
+        n std::ostringstream os String builder to append to.
     / Represents the contents of a string or JSON literal as its being parsed.
 
 AnnotationData: \

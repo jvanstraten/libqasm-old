@@ -5,11 +5,20 @@ using namespace cqasm2;
 namespace cqasm2 { namespace ast {
 
 
-
     /**
      * Constructor for Type.
      */
     Type::Type() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Type::operator std::string() const {
+        std::ostringstream os;
+        os << "Type(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -19,9 +28,29 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    TypeLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "TypeLiteral(";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for QubitType.
      */
     QubitType::QubitType() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    QubitType::operator std::string() const {
+        std::ostringstream os;
+        os << "QubitType(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -89,9 +118,34 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    NumericType::operator std::string() const {
+        std::ostringstream os;
+        os << "NumericType(";
+        os << has_sign;
+        os << ", ";
+        os << (ibits ? std::string(*ibits) : "NULL");
+        os << ", ";
+        os << (fbits ? std::string(*fbits) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for FloatType.
      */
     FloatType::FloatType() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    FloatType::operator std::string() const {
+        std::ostringstream os;
+        os << "FloatType(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -101,9 +155,29 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    DoubleType::operator std::string() const {
+        std::ostringstream os;
+        os << "DoubleType(";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Operand.
      */
     Operand::Operand() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Operand::operator std::string() const {
+        std::ostringstream os;
+        os << "Operand(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -113,9 +187,29 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Expression::operator std::string() const {
+        std::ostringstream os;
+        os << "Expression(";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for NumericLiteral.
      */
     NumericLiteral::NumericLiteral() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    NumericLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "NumericLiteral(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -143,6 +237,17 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    DecLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "DecLiteral(";
+        os << val;
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for HexLiteral.
      * @param val The value as it appears in the source file.
      */
@@ -164,6 +269,17 @@ namespace cqasm2 { namespace ast {
         val(std::string(val))
     {
         free(val);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    HexLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "HexLiteral(";
+        os << val;
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -191,6 +307,17 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    BinLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "BinLiteral(";
+        os << val;
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for FloatLiteral.
      * @param val The value as it appears in the source file.
      */
@@ -212,6 +339,17 @@ namespace cqasm2 { namespace ast {
         val(std::string(val))
     {
         free(val);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    FloatLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "FloatLiteral(";
+        os << val;
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -239,6 +377,17 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    NamedLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "NamedLiteral(";
+        os << name;
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Identifier.
      * @param name Identifier.
      */
@@ -260,6 +409,17 @@ namespace cqasm2 { namespace ast {
         name(std::string(name))
     {
         free(name);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Identifier::operator std::string() const {
+        std::ostringstream os;
+        os << "Identifier(";
+        os << name;
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -308,6 +468,19 @@ namespace cqasm2 { namespace ast {
         res(std::shared_ptr<Resource>(res)),
         id(std::shared_ptr<Identifier>(id))
     {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    ResourceRef::operator std::string() const {
+        std::ostringstream os;
+        os << "ResourceRef(";
+        os << (res ? std::string(*res) : "NULL");
+        os << ", ";
+        os << (id ? std::string(*id) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -367,6 +540,21 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MacroParamRef::operator std::string() const {
+        std::ostringstream os;
+        os << "MacroParamRef(";
+        os << (macro ? std::string(*macro) : "NULL");
+        os << ", ";
+        os << param;
+        os << ", ";
+        os << (id ? std::string(*id) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for MacroIterRef.
      * @param macro For loop that this parameter was resolved to.
      */
@@ -412,6 +600,19 @@ namespace cqasm2 { namespace ast {
         macro(std::shared_ptr<MacroFor>(macro)),
         id(std::shared_ptr<Identifier>(id))
     {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MacroIterRef::operator std::string() const {
+        std::ostringstream os;
+        os << "MacroIterRef(";
+        os << (macro ? std::string(*macro) : "NULL");
+        os << ", ";
+        os << (id ? std::string(*id) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -463,6 +664,19 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    LabelRef::operator std::string() const {
+        std::ostringstream os;
+        os << "LabelRef(";
+        os << (lbl ? std::string(*lbl) : "NULL");
+        os << ", ";
+        os << (id ? std::string(*id) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Subscript.
      * @param expr Expression to disambiguate with subscript notation.
      * @param subscript The subscript text.
@@ -491,6 +705,19 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Subscript::operator std::string() const {
+        std::ostringstream os;
+        os << "Subscript(";
+        os << (expr ? std::string(*expr) : "NULL");
+        os << ", ";
+        os << subscript;
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Indexation.
      * @param expr Expression to index.
      * @param indices List of index entries to index by.
@@ -514,6 +741,19 @@ namespace cqasm2 { namespace ast {
         expr(std::shared_ptr<Expression>(expr)),
         indices(std::shared_ptr<IndexList>(indices))
     {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Indexation::operator std::string() const {
+        std::ostringstream os;
+        os << "Indexation(";
+        os << (expr ? std::string(*expr) : "NULL");
+        os << ", ";
+        os << (indices ? std::string(*indices) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -551,6 +791,21 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Operation::operator std::string() const {
+        std::ostringstream os;
+        os << "Operation(";
+        os << fun;
+        os << ", ";
+        os << oper;
+        os << ", ";
+        os << (ops ? std::string(*ops) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for TypeCast.
      * @param typ Type to cast to.
      * @param expr Expression to typecast.
@@ -574,6 +829,19 @@ namespace cqasm2 { namespace ast {
         typ(std::shared_ptr<Type>(typ)),
         expr(std::shared_ptr<Expression>(expr))
     {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    TypeCast::operator std::string() const {
+        std::ostringstream os;
+        os << "TypeCast(";
+        os << (typ ? std::string(*typ) : "NULL");
+        os << ", ";
+        os << (expr ? std::string(*expr) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -609,15 +877,50 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    ShiftCast::operator std::string() const {
+        std::ostringstream os;
+        os << "ShiftCast(";
+        os << dir;
+        os << ", ";
+        os << (shamt ? std::string(*shamt) : "NULL");
+        os << ", ";
+        os << (expr ? std::string(*expr) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for ErroneousExpression.
      */
     ErroneousExpression::ErroneousExpression() {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    ErroneousExpression::operator std::string() const {
+        std::ostringstream os;
+        os << "ErroneousExpression(";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for MatrixLiteral.
      */
     MatrixLiteral::MatrixLiteral() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MatrixLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "MatrixLiteral(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -647,6 +950,17 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MatrixLiteral1::operator std::string() const {
+        std::ostringstream os;
+        os << "MatrixLiteral1(";
+        os << (data ? std::string(*data) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for MatrixLiteral2.
      */
     MatrixLiteral2::MatrixLiteral2() {
@@ -670,6 +984,25 @@ namespace cqasm2 { namespace ast {
     MatrixLiteral2 *MatrixLiteral2::push_row(ExpressionList * row) {
         this->rows.push_back(std::shared_ptr<ExpressionList>(row));
         return this;
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MatrixLiteral2::operator std::string() const {
+        std::ostringstream os;
+        os << "MatrixLiteral2(";
+        os << "[";
+        for (auto it = this->rows.begin(); it != rows.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != rows.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -697,6 +1030,17 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    StringLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "StringLiteral(";
+        os << data;
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for JsonLiteral.
      * @param data Contained JSON string.
      */
@@ -718,6 +1062,17 @@ namespace cqasm2 { namespace ast {
         data(std::string(data))
     {
         free(data);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    JsonLiteral::operator std::string() const {
+        std::ostringstream os;
+        os << "JsonLiteral(";
+        os << data;
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -747,6 +1102,25 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    ExpressionList::operator std::string() const {
+        std::ostringstream os;
+        os << "ExpressionList(";
+        os << "[";
+        for (auto it = this->exprs.begin(); it != exprs.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != exprs.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for OperandList.
      */
     OperandList::OperandList() {
@@ -773,6 +1147,25 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    OperandList::operator std::string() const {
+        std::ostringstream os;
+        os << "OperandList(";
+        os << "[";
+        for (auto it = this->opers.begin(); it != opers.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != opers.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for IdentifierList.
      */
     IdentifierList::IdentifierList() {
@@ -786,6 +1179,25 @@ namespace cqasm2 { namespace ast {
     IdentifierList *IdentifierList::push_id(std::string id) {
         this->ids.push_back(id);
         return this;
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    IdentifierList::operator std::string() const {
+        std::ostringstream os;
+        os << "IdentifierList(";
+        os << "[";
+        for (auto it = this->ids.begin(); it != ids.end(); ) {
+            os << *it;
+            it++;
+            if (it != ids.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -841,6 +1253,19 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    IndexEntry::operator std::string() const {
+        std::ostringstream os;
+        os << "IndexEntry(";
+        os << (first ? std::string(*first) : "NULL");
+        os << ", ";
+        os << (last ? std::string(*last) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for IndexList.
      */
     IndexList::IndexList() {
@@ -867,9 +1292,38 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    IndexList::operator std::string() const {
+        std::ostringstream os;
+        os << "IndexList(";
+        os << "[";
+        for (auto it = this->ents.begin(); it != ents.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != ents.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for StringBuilder.
      */
     StringBuilder::StringBuilder() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    StringBuilder::operator std::string() const {
+        std::ostringstream os;
+        os << "StringBuilder(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -941,6 +1395,21 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    AnnotationData::operator std::string() const {
+        std::ostringstream os;
+        os << "AnnotationData(";
+        os << target;
+        os << ", ";
+        os << name;
+        os << ", ";
+        os << (ops ? std::string(*ops) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for GateType.
      * @param name Name of the gate.
      */
@@ -985,9 +1454,40 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    GateType::operator std::string() const {
+        std::ostringstream os;
+        os << "GateType(";
+        os << name;
+        os << ", ";
+        os << "[";
+        for (auto it = this->conds.begin(); it != conds.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != conds.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Gate.
      */
     Gate::Gate() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Gate::operator std::string() const {
+        std::ostringstream os;
+        os << "Gate(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1014,6 +1514,25 @@ namespace cqasm2 { namespace ast {
     UnresolvedGate *UnresolvedGate::push_annot(AnnotationData * annot) {
         this->annots.push_back(std::shared_ptr<AnnotationData>(annot));
         return this;
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    UnresolvedGate::operator std::string() const {
+        std::ostringstream os;
+        os << "UnresolvedGate(";
+        os << "[";
+        for (auto it = this->annots.begin(); it != annots.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != annots.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1095,6 +1614,21 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    NormalGate::operator std::string() const {
+        std::ostringstream os;
+        os << "NormalGate(";
+        os << (typ ? std::string(*typ) : "NULL");
+        os << ", ";
+        os << (src ? std::string(*src) : "NULL");
+        os << ", ";
+        os << (dest ? std::string(*dest) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for IfGoto.
      * @param lbl Name of the label to jump to.
      */
@@ -1145,6 +1679,19 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    IfGoto::operator std::string() const {
+        std::ostringstream os;
+        os << "IfGoto(";
+        os << lbl;
+        os << ", ";
+        os << (expr ? std::string(*expr) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for MacroCall.
      * @param gate Gate description from the source code.
      * @param macro Macro that this gate was resolved to.
@@ -1168,6 +1715,19 @@ namespace cqasm2 { namespace ast {
         gate(std::shared_ptr<NormalGate>(gate)),
         macro(std::shared_ptr<MacroDef>(macro))
     {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MacroCall::operator std::string() const {
+        std::ostringstream os;
+        os << "MacroCall(";
+        os << (gate ? std::string(*gate) : "NULL");
+        os << ", ";
+        os << (macro ? std::string(*macro) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1197,6 +1757,25 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Statement::operator std::string() const {
+        std::ostringstream os;
+        os << "Statement(";
+        os << "[";
+        for (auto it = this->annots.begin(); it != annots.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != annots.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Pragma.
      * @param data Data belonging to this pragma statement.
      */
@@ -1218,9 +1797,31 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Pragma::operator std::string() const {
+        std::ostringstream os;
+        os << "Pragma(";
+        os << (data ? std::string(*data) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Resource.
      */
     Resource::Resource() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Resource::operator std::string() const {
+        std::ostringstream os;
+        os << "Resource(";
+        os << unique;
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1243,6 +1844,17 @@ namespace cqasm2 { namespace ast {
     QubitRegister1::QubitRegister1(NumericLiteral * nqubits):
         nqubits(std::shared_ptr<NumericLiteral>(nqubits))
     {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    QubitRegister1::operator std::string() const {
+        std::ostringstream os;
+        os << "QubitRegister1(";
+        os << (nqubits ? std::string(*nqubits) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1303,6 +1915,21 @@ namespace cqasm2 { namespace ast {
         init(std::shared_ptr<Expression>(init))
     {
         free(name);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    ScalarResource::operator std::string() const {
+        std::ostringstream os;
+        os << "ScalarResource(";
+        os << (typ ? std::string(*typ) : "NULL");
+        os << ", ";
+        os << name;
+        os << ", ";
+        os << (init ? std::string(*init) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1374,6 +2001,23 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    ArrayResource::operator std::string() const {
+        std::ostringstream os;
+        os << "ArrayResource(";
+        os << (typ ? std::string(*typ) : "NULL");
+        os << ", ";
+        os << name;
+        os << ", ";
+        os << (size ? std::string(*size) : "NULL");
+        os << ", ";
+        os << (init ? std::string(*init) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for LetStatement.
      * @param name Name of the resource.
      * @param init Initializer expression.
@@ -1399,6 +2043,19 @@ namespace cqasm2 { namespace ast {
         init(std::shared_ptr<Expression>(init))
     {
         free(name);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    LetStatement::operator std::string() const {
+        std::ostringstream os;
+        os << "LetStatement(";
+        os << name;
+        os << ", ";
+        os << (init ? std::string(*init) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1454,6 +2111,19 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Mapping::operator std::string() const {
+        std::ostringstream os;
+        os << "Mapping(";
+        os << name;
+        os << ", ";
+        os << (expr ? std::string(*expr) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Assignment.
      * @param lvalue Expression to be assigned.
      * @param rvalue What to assign the lvalue to.
@@ -1477,6 +2147,19 @@ namespace cqasm2 { namespace ast {
         lvalue(std::shared_ptr<Expression>(lvalue)),
         rvalue(std::shared_ptr<Expression>(rvalue))
     {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Assignment::operator std::string() const {
+        std::ostringstream os;
+        os << "Assignment(";
+        os << (lvalue ? std::string(*lvalue) : "NULL");
+        os << ", ";
+        os << (rvalue ? std::string(*rvalue) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1576,6 +2259,23 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MacroDef::operator std::string() const {
+        std::ostringstream os;
+        os << "MacroDef(";
+        os << name;
+        os << ", ";
+        os << (blk ? std::string(*blk) : "NULL");
+        os << ", ";
+        os << (src ? std::string(*src) : "NULL");
+        os << ", ";
+        os << (dest ? std::string(*dest) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for MacroFor.
      * @param name Name of the loop control variable.
      * @param indices Indices to iterate over.
@@ -1605,6 +2305,21 @@ namespace cqasm2 { namespace ast {
         blk(std::shared_ptr<Block>(blk))
     {
         free(name);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MacroFor::operator std::string() const {
+        std::ostringstream os;
+        os << "MacroFor(";
+        os << name;
+        os << ", ";
+        os << (indices ? std::string(*indices) : "NULL");
+        os << ", ";
+        os << (blk ? std::string(*blk) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1664,6 +2379,21 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    MacroIfElse::operator std::string() const {
+        std::ostringstream os;
+        os << "MacroIfElse(";
+        os << (cond ? std::string(*cond) : "NULL");
+        os << ", ";
+        os << (blk_true ? std::string(*blk_true) : "NULL");
+        os << ", ";
+        os << (blk_false ? std::string(*blk_false) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Include.
      * @param fname Filename.
      */
@@ -1683,6 +2413,17 @@ namespace cqasm2 { namespace ast {
     Include::Include(StringLiteral * fname):
         fname(std::shared_ptr<StringLiteral>(fname))
     {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Include::operator std::string() const {
+        std::ostringstream os;
+        os << "Include(";
+        os << (fname ? std::string(*fname) : "NULL");
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1738,6 +2479,19 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Subcircuit::operator std::string() const {
+        std::ostringstream os;
+        os << "Subcircuit(";
+        os << name;
+        os << ", ";
+        os << (iter ? std::string(*iter) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Label.
      * @param name Label name.
      */
@@ -1758,6 +2512,19 @@ namespace cqasm2 { namespace ast {
         name(std::string(name))
     {
         free(name);
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Label::operator std::string() const {
+        std::ostringstream os;
+        os << "Label(";
+        os << name;
+        os << ", ";
+        os << unique;
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1798,9 +2565,38 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Bundle::operator std::string() const {
+        std::ostringstream os;
+        os << "Bundle(";
+        os << "[";
+        for (auto it = this->gates.begin(); it != gates.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != gates.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for ErroneousStatement.
      */
     ErroneousStatement::ErroneousStatement() {
+    }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    ErroneousStatement::operator std::string() const {
+        std::ostringstream os;
+        os << "ErroneousStatement(";
+        os << ")";
+        return os.str();
     }
 
     /**
@@ -1830,6 +2626,25 @@ namespace cqasm2 { namespace ast {
     }
 
     /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Block::operator std::string() const {
+        std::ostringstream os;
+        os << "Block(";
+        os << "[";
+        for (auto it = this->stmts.begin(); it != stmts.end(); ) {
+            os << (*it ? std::string(**it) : "NULL");
+            it++;
+            if (it != stmts.end()) {
+                os << ", ";
+            }
+        }
+        os << "]";
+        os << ")";
+        return os.str();
+    }
+
+    /**
      * Constructor for Program.
      * @param version Version string.
      * @param blk Block of code representing the program.
@@ -1856,6 +2671,20 @@ namespace cqasm2 { namespace ast {
     {
         free(version);
     }
+
+    /**
+     * Converts to a "ClassName(...)" string for debugging.
+     */
+    Program::operator std::string() const {
+        std::ostringstream os;
+        os << "Program(";
+        os << version;
+        os << ", ";
+        os << (blk ? std::string(*blk) : "NULL");
+        os << ")";
+        return os.str();
+    }
+
 
 }}
 
