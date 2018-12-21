@@ -1,6 +1,7 @@
 %{
     #include <cstdlib>
     #include <string>
+    #include <string.h>
     #include "cqasm2/ast/ast.hpp"
     int yyerror(char const *s);
     extern int yylex(void);
@@ -11,16 +12,52 @@
 
 /* YYSTYPE union */
 %union {
-    char *str;
-    cqasm2::ast::Type *typ;
-    cqasm2::ast::NumericLiteral *numlit;
-    cqasm2::ast::Expression *expr;
+    char                            *str;
+    cqasm2::ast::Type               *typ;
+    cqasm2::ast::NumericLiteral     *numlit;
+    cqasm2::ast::Expression         *expr;
+    cqasm2::ast::ExpressionList     *expl;
+    cqasm2::ast::IndexEntry         *idxe;
+    cqasm2::ast::IndexList          *idxl;
+    cqasm2::ast::MatrixLiteral2     *mat2;
+    cqasm2::ast::MatrixLiteral      *mat;
+    cqasm2::ast::StringBuilder      *strb;
+    cqasm2::ast::StringLiteral      *strl;
+    cqasm2::ast::JsonLiteral        *jsl;
+    cqasm2::ast::Operand            *oper;
+    cqasm2::ast::OperandList        *opl;
+    cqasm2::ast::IdentifierList     *idl;
+    cqasm2::ast::AnnotationData     *adat;
+    cqasm2::ast::GateType           *gtyp;
+    cqasm2::ast::UnresolvedGate     *gate;
+    cqasm2::ast::Bundle             *bun;
+    cqasm2::ast::Statement          *stmt;
+    cqasm2::ast::Block              *blk;
+    cqasm2::ast::Program            *prgm;
 };
 
 /* Typenames for nonterminals */
 %type <typ> Type
 %type <numlit> NumericLiteral
 %type <expr> Expression
+%type <expl> ExpressionList
+%type <idxe> IndexEntry
+%type <idxl> IndexList
+%type <mat2> MatrixLiteral2
+%type <mat>  MatrixLiteral
+%type <strb> StringBuilder
+%type <strl> StringLiteral
+%type <jsl>  JsonLiteral
+%type <oper> Operand
+%type <opl>  OperandList
+%type <idl>  IdentifierList
+%type <adat> AnnotationData
+%type <gtyp> GateType
+%type <gate> Gate AnnotGate
+%type <bun>  SLParGateList CBParGateList
+%type <stmt> Statement AnnotStatement
+%type <blk>  StatementList Block
+%type <prgm> Program
 
 /* Version header */
 %token <str> VERSION
@@ -44,7 +81,7 @@
 %token <str> LIT_FIXED_HEX LIT_FIXED_BIN
 %token <str> LIT_UFIXED_HEX LIT_UFIXED_BIN
 %token <str> LIT_FLOAT LIT_DOUBLE
-%token LIT_TRUE LIT_FALSE LIT_PI LIT_EU LIT_IM
+%token <str> LIT_NAMED
 
 /* Matrix literals */
 %token MATRIX_OPEN MATRIX_CLOSE
@@ -121,253 +158,207 @@ OptNewline      : Newline
 /* Type specifiers. */
 Type            : TYPE_QUBIT                                                    { $$ = new QubitType(); }
                 | TYPE_BOOLEAN                                                  { $$ = new NumericType(false); }
-                | TYPE_INT    '<' Expression '>' %prec TYPE_PARAM               { $$ = new NumericType(true,  std::make_shared<Expression>($3)); }
-                | TYPE_UINT   '<' Expression '>' %prec TYPE_PARAM               { $$ = new NumericType(false, std::make_shared<Expression>($3)); }
-                | TYPE_FIXED  '<' Expression ',' Expression '>' %prec TYPE_PARAM{ $$ = new NumericType(true,  std::make_shared<Expression>($3), std::make_shared<Expression>($5)); }
-                | TYPE_UFIXED '<' Expression ',' Expression '>' %prec TYPE_PARAM{ $$ = new NumericType(false, std::make_shared<Expression>($3), std::make_shared<Expression>($5)); }
+                | TYPE_INT    '<' Expression '>' %prec TYPE_PARAM               { $$ = new NumericType(true,  $3); }
+                | TYPE_UINT   '<' Expression '>' %prec TYPE_PARAM               { $$ = new NumericType(false, $3); }
+                | TYPE_FIXED  '<' Expression ',' Expression '>' %prec TYPE_PARAM{ $$ = new NumericType(true,  $3, $5); }
+                | TYPE_UFIXED '<' Expression ',' Expression '>' %prec TYPE_PARAM{ $$ = new NumericType(false, $3, $5); }
                 | TYPE_FLOAT                                                    { $$ = new FloatType(); }
                 | TYPE_DOUBLE                                                   { $$ = new DoubleType(); }
                 ;
 
 /* All literals that reduce to numericals. */
-NumericLiteral  : LIT_INT_DEC                                                   { $$ = new DecLiteral($1); free($1); }
-                | LIT_UINT_DEC                                                  { $$ = new DecLiteral($1); free($1); }
-                | LIT_INT_HEX                                                   { $$ = new HexLiteral($1); free($1); }
-                | LIT_UINT_HEX                                                  { $$ = new HexLiteral($1); free($1); }
-                | LIT_FIXED_HEX                                                 { $$ = new HexLiteral($1); free($1); }
-                | LIT_UFIXED_HEX                                                { $$ = new HexLiteral($1); free($1); }
-                | LIT_INT_BIN                                                   { $$ = new BinLiteral($1); free($1); }
-                | LIT_UINT_BIN                                                  { $$ = new BinLiteral($1); free($1); }
-                | LIT_FIXED_BIN                                                 { $$ = new BinLiteral($1); free($1); }
-                | LIT_UFIXED_BIN                                                { $$ = new BinLiteral($1); free($1); }
-                | LIT_FLOAT                                                     { $$ = new FloatLiteral($1); free($1); }
-                | LIT_DOUBLE                                                    { $$ = new FloatLiteral($1); free($1); }
-                | LIT_TRUE                                                      { $$ = new NamedLiteral("true"); }
-                | LIT_FALSE                                                     { $$ = new NamedLiteral("false"); }
-                | LIT_PI                                                        { $$ = new NamedLiteral("pi"); }
-                | LIT_EU                                                        { $$ = new NamedLiteral("eu"); }
-                | LIT_IM                                                        { $$ = new NamedLiteral("im"); }
+NumericLiteral  : LIT_INT_DEC                                                   { $$ = new DecLiteral($1); }
+                | LIT_UINT_DEC                                                  { $$ = new DecLiteral($1); }
+                | LIT_INT_HEX                                                   { $$ = new HexLiteral($1); }
+                | LIT_UINT_HEX                                                  { $$ = new HexLiteral($1); }
+                | LIT_FIXED_HEX                                                 { $$ = new HexLiteral($1); }
+                | LIT_UFIXED_HEX                                                { $$ = new HexLiteral($1); }
+                | LIT_INT_BIN                                                   { $$ = new BinLiteral($1); }
+                | LIT_UINT_BIN                                                  { $$ = new BinLiteral($1); }
+                | LIT_FIXED_BIN                                                 { $$ = new BinLiteral($1); }
+                | LIT_UFIXED_BIN                                                { $$ = new BinLiteral($1); }
+                | LIT_FLOAT                                                     { $$ = new FloatLiteral($1); }
+                | LIT_DOUBLE                                                    { $$ = new FloatLiteral($1); }
+                | LIT_NAMED                                                     { $$ = new NamedLiteral($1); }
                 ;
 
 /* These expressions are almost fully-featured C. Of course only a subset of
 this is semantically legal depending on context, and almost all of these rules
 must be statically reduced by desugaring. */
 Expression      : NumericLiteral                                                { $$ = $1; }
-                | IDENTIFIER                                                    { $$ = new Identifier($1); free($1); }
-                | Expression '.' IDENTIFIER                                     { $$ = new Subscript($1, $3); free($3); }
+                | IDENTIFIER                                                    { $$ = new Identifier($1); }
+                | Expression '.' IDENTIFIER                                     { $$ = new Subscript($1, $3); }
                 | Expression '[' IndexList ']' %prec '['                        { $$ = $1; /* TODO */ }
                 | IDENTIFIER '(' ExpressionList ')' %prec '('                   { $$ = new Operation(true, $1, $3); }
                 | '(' Expression ')'                                            { $$ = $2; }
                 | '(' Type ')' Expression %prec TYPECAST                        { $$ = new TypeCast($2, $4); }
                 | '(' SHIFT_LEFT Expression ')' Expression %prec TYPECAST       { $$ = new ShiftCast(true, $3, $5); }
                 | '(' SHIFT_RIGHT Expression ')' Expression %prec TYPECAST      { $$ = new ShiftCast(false, $3, $5); }
-                | '+' Expression %prec UPLUS                                    { $$ = new Operation(false, "+", new ExpressionList()->push_expr($2)); }
-                | '-' Expression %prec UMINUS                                   { $$ = new Operation(false, "-", new ExpressionList()->push_expr($2)); }
-                | '!' Expression                                                { $$ = new Operation(false, "+", new ExpressionList()->push_expr($2)); }
-                | '~' Expression                                                { $$ = new Operation(false, "+", new ExpressionList()->push_expr($2)); }
-                | Expression '*' Expression
-                | Expression '/' Expression
-                | Expression '%' Expression
-                | Expression '+' Expression
-                | Expression '-' Expression
-                | Expression SHIFT_LEFT Expression
-                | Expression SHIFT_RIGHT Expression
-                | Expression CMP_GE Expression
-                | Expression CMP_LE Expression
-                | Expression '>' Expression
-                | Expression '<' Expression
-                | Expression CMP_EQ Expression
-                | Expression CMP_NE Expression
-                | Expression '&' Expression
-                | Expression '^' Expression
-                | Expression '|' Expression
-                | Expression LOGICAL_AND Expression
-                | Expression LOGICAL_XOR Expression
-                | Expression LOGICAL_OR Expression
-                | Expression '?' Expression ':' Expression %prec '?'
-                | error                                                         { yyrecovered = true; }
+                | '+' Expression %prec UPLUS                                    { $$ = $2; }
+                | '-' Expression %prec UMINUS                                   { $$ = new Operation(false, strdup("neg"),  (new ExpressionList())->push_expr($2)); }
+                | '!' Expression                                                { $$ = new Operation(false, strdup("not"),  (new ExpressionList())->push_expr($2)); }
+                | '~' Expression                                                { $$ = new Operation(false, strdup("inv"),  (new ExpressionList())->push_expr($2)); }
+                | Expression POWER Expression                                   { $$ = new Operation(false, strdup("pow"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '*' Expression                                     { $$ = new Operation(false, strdup("mul"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '/' Expression                                     { $$ = new Operation(false, strdup("div"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression DIV_INT Expression                                 { $$ = new Operation(false, strdup("idiv"), (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '%' Expression                                     { $$ = new Operation(false, strdup("mod"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '+' Expression                                     { $$ = new Operation(false, strdup("add"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '-' Expression                                     { $$ = new Operation(false, strdup("sub"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression SHIFT_LEFT Expression                              { $$ = new Operation(false, strdup("shl"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression SHIFT_RIGHT Expression                             { $$ = new Operation(false, strdup("shr"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '>' Expression                                     { $$ = new Operation(false, strdup("cgt"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '<' Expression                                     { $$ = new Operation(false, strdup("clt"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression CMP_GE Expression                                  { $$ = new Operation(false, strdup("cge"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression CMP_LE Expression                                  { $$ = new Operation(false, strdup("cle"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression CMP_EQ Expression                                  { $$ = new Operation(false, strdup("ceq"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression CMP_NE Expression                                  { $$ = new Operation(false, strdup("cne"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '&' Expression                                     { $$ = new Operation(false, strdup("and"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '^' Expression                                     { $$ = new Operation(false, strdup("or"),   (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '|' Expression                                     { $$ = new Operation(false, strdup("xor"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression LOGICAL_AND Expression                             { $$ = new Operation(false, strdup("land"), (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression LOGICAL_XOR Expression                             { $$ = new Operation(false, strdup("lxor"), (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression LOGICAL_OR Expression                              { $$ = new Operation(false, strdup("lor"),  (new ExpressionList())->push_expr($1)->push_expr($3)); }
+                | Expression '?' Expression ':' Expression %prec '?'            { $$ = new Operation(false, strdup("slct"), (new ExpressionList())->push_expr($1)->push_expr($3)->push_expr($5)); }
+                | error                                                         { $$ = new ErroneousExpression(); yyrecovered = true; }
                 ;
 
 /* List of one or more expressions. */
-ExpressionList  : ExpressionList ',' Expression
-                | Expression %prec ','
+ExpressionList  : ExpressionList ',' Expression                                 { $$ = $1->push_expr($3); }
+                | Expression %prec ','                                          { $$ = (new ExpressionList())->push_expr($1); }
                 ;
 
 /* Indexation modes. */
-IndexEntry      : Expression
-                | Expression ':' Expression
+IndexEntry      : Expression                                                    { $$ = new IndexEntry($1); }
+                | Expression ':' Expression                                     { $$ = new IndexEntry($1, $3); }
                 ;
 
-IndexList       : IndexList ',' IndexEntry
-                | IndexEntry
+IndexList       : IndexList ',' IndexEntry                                      { $$ = $1->push_ent($3); }
+                | IndexEntry                                                    { $$ = (new IndexList())->push_ent($1); }
                 ;
 
 /* Matrix syntax, used to describe custom gates. */
-MatrixData      : MatrixData Newline ExpressionList
-                | ExpressionList
+MatrixLiteral2  : MatrixLiteral2 Newline ExpressionList                         { $$ = $1->push_row($3); }
+                | ExpressionList                                                { $$ = (new MatrixLiteral2())->push_row($1); }
                 ;
 
-MatrixLiteral   : MATRIX_OPEN OptNewline MatrixData OptNewline MATRIX_CLOSE
-                | '[' ExpressionList ']'
+MatrixLiteral   : MATRIX_OPEN OptNewline MatrixLiteral2 OptNewline MATRIX_CLOSE { $$ = $3; }
+                | '[' ExpressionList ']'                                        { $$ = new MatrixLiteral1($2); }
                 ;
 
 /* String builder. This accumulates JSON/String data, mostly
 character-by-character. */
-StringBuilder   : StringBuilder STRBUILD_APPEND
-                | StringBuilder STRBUILD_ESCAPE
-                |
+StringBuilder   : StringBuilder STRBUILD_APPEND                                 { $$ = $1; /* TODO */ free($2); }
+                | StringBuilder STRBUILD_ESCAPE                                 { $$ = $1; $$->os << $2; free($2); }
+                |                                                               { $$ = new StringBuilder(); }
                 ;
 
 /* String literal. */
-StringLiteral   : STRING_OPEN StringBuilder STRING_CLOSE
+StringLiteral   : STRING_OPEN StringBuilder STRING_CLOSE                        { $$ = new StringLiteral($2->os.str()); delete $2; }
                 ;
 
 /* JSON literal. */
-JsonLiteral     : JSON_OPEN StringBuilder JSON_CLOSE
+JsonLiteral     : JSON_OPEN StringBuilder JSON_CLOSE                            { $$ = new JsonLiteral($2->os.str()); delete $2; }
                 ;
 
 /* Operands in cQASM can be expressions, strings (for print and error), or
 matrices (for the U gate). */
-Operand         : Expression %prec BUNDLE
-                | MatrixLiteral
-                | StringLiteral
-                | JsonLiteral
+Operand         : Expression %prec BUNDLE                                       { $$ = $1; }
+                | MatrixLiteral                                                 { $$ = $1; }
+                | StringLiteral                                                 { $$ = $1; }
+                | JsonLiteral                                                   { $$ = $1; }
                 ;
 
 /* List of operands. */
-OperandList     : OperandList ',' Operand
-                | Operand %prec ','
+OperandList     : OperandList ',' Operand                                       { $$ = $1->push_oper($3); }
+                | Operand %prec ','                                             { $$ = (new OperandList())->push_oper($1); }
                 ;
 
 /* List of identifiers. */
-IdentifierList  : IdentifierList ',' IDENTIFIER
-                | IDENTIFIER
+IdentifierList  : IdentifierList ',' IDENTIFIER                                 { $$ = $1->push_id($3); }
+                | IDENTIFIER                                                    { $$ = (new IdentifierList())->push_id($1); }
                 ;
 
 /* The information caried by an annotation or pragma statement. */
-AnnotationData  : IDENTIFIER IDENTIFIER
-                | IDENTIFIER IDENTIFIER ':' OperandList
-                ;
-
-/* Pragma statement. */
-Pragma          : PRAGMA AnnotationData
-                ;
-
-/* Resource declaration statament. */
-Resource        : Type IDENTIFIER
-                | Type IDENTIFIER '=' Expression
-                | Type IDENTIFIER '[' Expression ']'
-                | Type IDENTIFIER '[' Expression ']' '=' Expression
-                | LET IDENTIFIER '=' Expression
-                | TYPE_QUBIT NumericLiteral
-                ;
-
-/* Resource mapping statement. */
-Mapping         : MAP Expression ',' IDENTIFIER
-                | MAP IDENTIFIER ASSIGN Expression
-                ;
-
-/* Resource assignments. */
-Assignment      : SET Expression '=' Expression
-                ;
-
-/* Macro subroutine definition. */
-MacroDef        : DEF IDENTIFIER '(' ')' Block
-                | DEF IDENTIFIER '(' IdentifierList ')' Block
-                | DEF IDENTIFIER '(' IdentifierList ASSIGN IdentifierList ')' Block
-                ;
-
-/* For loop macro. */
-MacroFor        : FOR IDENTIFIER '=' '[' IndexList ']' Block
-                ;
-
-/* If/else macro. */
-MacroIfElse     : IF '(' Expression ')' Block
-                | IF Block ELSE Block
-                ;
-
-/* Include statement. */
-Include         : INCLUDE StringLiteral
-                ;
-
-/* Subcircuit statement. */
-Subcircuit      : '.' IDENTIFIER
-                | '.' IDENTIFIER '(' NumericLiteral ')'
-                ;
-
-/* Label statement. */
-Label           : IDENTIFIER ':'
+AnnotationData  : IDENTIFIER IDENTIFIER                                         { $$ = new AnnotationData($1, $2); }
+                | IDENTIFIER IDENTIFIER ':' OperandList                         { $$ = new AnnotationData($1, $2, $4); }
                 ;
 
 /* Name for gates, with optional conditional syntax. */
-GateType        : IDENTIFIER
-                | CDASH GateType Expression ','
+GateType        : IDENTIFIER                                                    { $$ = new GateType($1); }
+                | CDASH GateType Expression ','                                 { $$ = $2->push_cond($3); }
                 ;
 
 /* Gate execution. This includes classical instructions. Note that this is
 NOT directly a statement grammatically; they are first made part of a bundle.
 */
-Gate            : GateType
-                | GateType OperandList
-                | GateType OperandList ASSIGN OperandList
-                | IF Expression GOTO IDENTIFIER
-                | GOTO IDENTIFIER
+Gate            : GateType                                                      { $$ = new NormalGate($1); }
+                | GateType OperandList                                          { $$ = new NormalGate($1, $2); }
+                | GateType OperandList ASSIGN OperandList                       { $$ = new NormalGate($1, $2, $4); }
+                | IF Expression GOTO IDENTIFIER                                 { $$ = new IfGoto($4, $2); }
+                | GOTO IDENTIFIER                                               { $$ = new IfGoto($2); }
                 ;
 
 /* Gates are not statements but can be annotated, so they need their own
 annotation rule. */
-AnnotGate       : AnnotGate '@' AnnotationData
-                | Gate
+AnnotGate       : AnnotGate '@' AnnotationData                                  { $$ = $1->push_annot($3); }
+                | Gate                                                          { $$ = $1; }
                 ;
 
 /* Single-line bundling syntax. */
-SLParGateList   : SLParGateList '|' AnnotGate
-                | AnnotGate %prec '|'
+SLParGateList   : SLParGateList '|' AnnotGate                                   { $$ = $1->push_gate($3); }
+                | AnnotGate %prec '|'                                           { $$ = new Bundle(); }
                 ;
 
 /* Multi-line bundling syntax. */
-CBParGateList   : CBParGateList Newline SLParGateList
-                | SLParGateList
-                ;
-
-/* Bundle statement. */
-Bundle          : SLParGateList
-                | '{' OptNewline CBParGateList OptNewline '}'
+CBParGateList   : CBParGateList Newline SLParGateList                           { $$ = $1->push_gates($3->gates); delete $3; }
+                | SLParGateList                                                 { $$ = $1; }
                 ;
 
 /* Any of the supported statements. */
-Statement       : Pragma
-                | Resource
-                | Mapping
-                | Assignment
-                | MacroDef
-                | MacroFor
-                | MacroIfElse
-                | Include
-                | Subcircuit
-                | Label
-                | Bundle
-                | error                                                         { yyrecovered = true; }
+Statement       : PRAGMA AnnotationData                                         { $$ = new Pragma($2); }
+                | Type IDENTIFIER                                               { $$ = new ScalarResource($1, $2); }
+                | Type IDENTIFIER '=' Expression                                { $$ = new ScalarResource($1, $2, $4); }
+                | Type IDENTIFIER '[' Expression ']'                            { $$ = new ArrayResource($1, $2, $4); }
+                | Type IDENTIFIER '[' Expression ']' '=' Expression             { $$ = new ArrayResource($1, $2, $4, $7); }
+                | LET IDENTIFIER '=' Expression                                 { $$ = new LetStatement($2, $4); }
+                | TYPE_QUBIT NumericLiteral                                     { $$ = new QubitRegister1($2); }
+                | MAP Expression ',' IDENTIFIER                                 { $$ = new Mapping($4, $2); }
+                | MAP IDENTIFIER ASSIGN Expression                              { $$ = new Mapping($2, $4); }
+                | SET Expression '=' Expression                                 { $$ = new Assignment($2, $4); }
+                | DEF IDENTIFIER '(' ')' Block                                  { $$ = new MacroDef($2, $5); }
+                | DEF IDENTIFIER '(' IdentifierList ')' Block                   { $$ = new MacroDef($2, $6, $4); }
+                | DEF IDENTIFIER '(' IdentifierList ASSIGN IdentifierList ')' Block { $$ = new MacroDef($2, $8, $4, $6); }
+                | FOR IDENTIFIER '=' '[' IndexList ']' Block                    { $$ = new MacroFor($2, $5, $7); }
+                | IF '(' Expression ')' Block                                   { $$ = new MacroIfElse($3, $5); }
+                | IF '(' Expression ')' Block ELSE Block                        { $$ = new MacroIfElse($3, $5, $7); }
+                | INCLUDE StringLiteral                                         { $$ = new Include($2); }
+                | '.' IDENTIFIER                                                { $$ = new Subcircuit($2); }
+                | '.' IDENTIFIER '(' NumericLiteral ')'                         { $$ = new Subcircuit($2, $4); }
+                | IDENTIFIER ':'                                                { $$ = new Label($1); }
+                | SLParGateList                                                 { $$ = $1; }
+                | '{' OptNewline CBParGateList OptNewline '}'                   { $$ = $3; }
+                | error                                                         { $$ = new ErroneousStatement(); yyrecovered = true; }
                 ;
 
 /* Statement with annotations attached to it. */
-AnnotStatement  : AnnotStatement '@' AnnotationData
-                | Statement
+AnnotStatement  : AnnotStatement '@' AnnotationData                             { $$ = $1->push_annot($3); }
+                | Statement                                                     { $$ = $1; }
                 ;
 
 /* List of one or more statements. */
-BlockData       : BlockData Newline AnnotStatement
-                | AnnotStatement
+StatementList   : StatementList Newline AnnotStatement                          { $$ = $1->push_stmt($3); }
+                | AnnotStatement                                                { $$ = (new Block())->push_stmt($1); }
                 ;
 
 /* Block of code; zero or more statements. */
-Block           : '{' OptNewline BlockData OptNewline '}'
-                | '{' OptNewline '}'
+Block           : '{' OptNewline StatementList OptNewline '}'                   { $$ = $3; }
+                | '{' OptNewline '}'                                            { $$ = new Block(); }
                 ;
 
 /* Toplevel. */
-Program         : OptNewline VERSION Newline BlockData OptNewline
-                | OptNewline VERSION OptNewline
+Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = new Program($2, $4); }
+                | OptNewline VERSION OptNewline                                 { $$ = new Program($2, new Block()); }
                 ;
 
 

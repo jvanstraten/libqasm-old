@@ -15,7 +15,6 @@ namespace cqasm2 { namespace ast {
      */
     Node::Node() {
         // TODO: grab from Yacc globals!
-        std::cout << "OH MAN WE MADE A NODE\n";
         this->source = "<internal>";
         this->line   = yylloc.first_line;
         this->column = yylloc.first_column;

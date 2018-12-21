@@ -63,7 +63,7 @@ namespace cqasm2 { namespace ast {
     class Statement;
     class Pragma;
     class Resource;
-    class QubitRegister;
+    class QubitRegister1;
     class ScalarResource;
     class ArrayResource;
     class LetStatement;
@@ -170,12 +170,37 @@ namespace cqasm2 { namespace ast {
         NumericType(bool has_sign, std::shared_ptr<Expression> ibits);
 
         /**
+         * Constructor for NumericType, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param has_sign Whether this is a signed or unsigned type.
+         * @param ibits Number of bits before the decimal separator.
+         */
+        NumericType(bool has_sign, Expression * ibits);
+
+        /**
          * Constructor for NumericType.
          * @param has_sign Whether this is a signed or unsigned type.
          * @param ibits Number of bits before the decimal separator.
          * @param fbits Number of bits after the decimal separator.
          */
         NumericType(bool has_sign, std::shared_ptr<Expression> ibits, std::shared_ptr<Expression> fbits);
+
+        /**
+         * Constructor for NumericType, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param has_sign Whether this is a signed or unsigned type.
+         * @param ibits Number of bits before the decimal separator.
+         * @param fbits Number of bits after the decimal separator.
+         */
+        NumericType(bool has_sign, Expression * ibits, Expression * fbits);
 
         /**
          * Default destructor for NumericType.
@@ -292,6 +317,18 @@ namespace cqasm2 { namespace ast {
         DecLiteral(std::string val);
 
         /**
+         * Constructor for DecLiteral, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param val The value as it appears in the source file. The passed
+         * pointer will be free()d by this constructor!
+         */
+        DecLiteral(char * val);
+
+        /**
          * Default destructor for DecLiteral.
          */
         virtual ~DecLiteral() = default;
@@ -314,6 +351,18 @@ namespace cqasm2 { namespace ast {
          * @param val The value as it appears in the source file.
          */
         HexLiteral(std::string val);
+
+        /**
+         * Constructor for HexLiteral, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param val The value as it appears in the source file. The passed
+         * pointer will be free()d by this constructor!
+         */
+        HexLiteral(char * val);
 
         /**
          * Default destructor for HexLiteral.
@@ -340,6 +389,18 @@ namespace cqasm2 { namespace ast {
         BinLiteral(std::string val);
 
         /**
+         * Constructor for BinLiteral, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param val The value as it appears in the source file. The passed
+         * pointer will be free()d by this constructor!
+         */
+        BinLiteral(char * val);
+
+        /**
          * Default destructor for BinLiteral.
          */
         virtual ~BinLiteral() = default;
@@ -362,6 +423,18 @@ namespace cqasm2 { namespace ast {
          * @param val The value as it appears in the source file.
          */
         FloatLiteral(std::string val);
+
+        /**
+         * Constructor for FloatLiteral, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param val The value as it appears in the source file. The passed
+         * pointer will be free()d by this constructor!
+         */
+        FloatLiteral(char * val);
 
         /**
          * Default destructor for FloatLiteral.
@@ -388,6 +461,18 @@ namespace cqasm2 { namespace ast {
         NamedLiteral(std::string name);
 
         /**
+         * Constructor for NamedLiteral, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name The name of the constant. The passed pointer will be
+         * free()d by this constructor!
+         */
+        NamedLiteral(char * name);
+
+        /**
          * Default destructor for NamedLiteral.
          */
         virtual ~NamedLiteral() = default;
@@ -412,6 +497,18 @@ namespace cqasm2 { namespace ast {
          * @param name Identifier.
          */
         Identifier(std::string name);
+
+        /**
+         * Constructor for Identifier, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Identifier. The passed pointer will be free()d by this
+         * constructor!
+         */
+        Identifier(char * name);
 
         /**
          * Default destructor for Identifier.
@@ -444,12 +541,36 @@ namespace cqasm2 { namespace ast {
         ResourceRef(std::shared_ptr<Resource> res);
 
         /**
+         * Constructor for ResourceRef, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param res Resolved resource.
+         */
+        ResourceRef(Resource * res);
+
+        /**
          * Constructor for ResourceRef.
          * @param res Resolved resource.
          * @param id Original identifier that was used for this reference, if
          * any.
          */
         ResourceRef(std::shared_ptr<Resource> res, std::shared_ptr<Identifier> id);
+
+        /**
+         * Constructor for ResourceRef, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param res Resolved resource.
+         * @param id Original identifier that was used for this reference, if
+         * any.
+         */
+        ResourceRef(Resource * res, Identifier * id);
 
         /**
          * Default destructor for ResourceRef.
@@ -488,6 +609,18 @@ namespace cqasm2 { namespace ast {
         MacroParamRef(std::shared_ptr<MacroDef> macro, int param);
 
         /**
+         * Constructor for MacroParamRef, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param macro Macro definition this parameter was resolved to.
+         * @param param Parameter index.
+         */
+        MacroParamRef(MacroDef * macro, int param);
+
+        /**
          * Constructor for MacroParamRef.
          * @param macro Macro definition this parameter was resolved to.
          * @param param Parameter index.
@@ -495,6 +628,20 @@ namespace cqasm2 { namespace ast {
          * any.
          */
         MacroParamRef(std::shared_ptr<MacroDef> macro, int param, std::shared_ptr<Identifier> id);
+
+        /**
+         * Constructor for MacroParamRef, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param macro Macro definition this parameter was resolved to.
+         * @param param Parameter index.
+         * @param id Original identifier that was used for this reference, if
+         * any.
+         */
+        MacroParamRef(MacroDef * macro, int param, Identifier * id);
 
         /**
          * Default destructor for MacroParamRef.
@@ -527,12 +674,36 @@ namespace cqasm2 { namespace ast {
         MacroIterRef(std::shared_ptr<MacroFor> macro);
 
         /**
+         * Constructor for MacroIterRef, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param macro For loop that this parameter was resolved to.
+         */
+        MacroIterRef(MacroFor * macro);
+
+        /**
          * Constructor for MacroIterRef.
          * @param macro For loop that this parameter was resolved to.
          * @param id Original identifier that was used for this reference, if
          * any.
          */
         MacroIterRef(std::shared_ptr<MacroFor> macro, std::shared_ptr<Identifier> id);
+
+        /**
+         * Constructor for MacroIterRef, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param macro For loop that this parameter was resolved to.
+         * @param id Original identifier that was used for this reference, if
+         * any.
+         */
+        MacroIterRef(MacroFor * macro, Identifier * id);
 
         /**
          * Default destructor for MacroIterRef.
@@ -564,12 +735,36 @@ namespace cqasm2 { namespace ast {
         LabelRef(std::shared_ptr<Label> lbl);
 
         /**
+         * Constructor for LabelRef, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param lbl Label that this identifier was resolved to.
+         */
+        LabelRef(Label * lbl);
+
+        /**
          * Constructor for LabelRef.
          * @param lbl Label that this identifier was resolved to.
          * @param id Original identifier that was used for this reference, if
          * any.
          */
         LabelRef(std::shared_ptr<Label> lbl, std::shared_ptr<Identifier> id);
+
+        /**
+         * Constructor for LabelRef, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param lbl Label that this identifier was resolved to.
+         * @param id Original identifier that was used for this reference, if
+         * any.
+         */
+        LabelRef(Label * lbl, Identifier * id);
 
         /**
          * Default destructor for LabelRef.
@@ -604,6 +799,19 @@ namespace cqasm2 { namespace ast {
         Subscript(std::shared_ptr<Expression> expr, std::string subscript);
 
         /**
+         * Constructor for Subscript, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param expr Expression to disambiguate with subscript notation.
+         * @param subscript The subscript text. The passed pointer will be
+         * free()d by this constructor!
+         */
+        Subscript(Expression * expr, char * subscript);
+
+        /**
          * Default destructor for Subscript.
          */
         virtual ~Subscript() = default;
@@ -634,6 +842,18 @@ namespace cqasm2 { namespace ast {
         Indexation(std::shared_ptr<Expression> expr, std::shared_ptr<IndexList> indices);
 
         /**
+         * Constructor for Indexation, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param expr Expression to index.
+         * @param indices List of index entries to index by.
+         */
+        Indexation(Expression * expr, IndexList * indices);
+
+        /**
          * Default destructor for Indexation.
          */
         virtual ~Indexation() = default;
@@ -652,23 +872,38 @@ namespace cqasm2 { namespace ast {
         bool fun;
 
         /**
-         * Operand list.
-         */
-        std::shared_ptr<ExpressionList> ops;
-
-        /**
          * Operator or function name.
          */
         std::string oper;
 
         /**
+         * Operand list.
+         */
+        std::shared_ptr<ExpressionList> ops;
+
+        /**
          * Constructor for Operation.
          * @param fun Whether this is a function call (true) or an inline
          * operator (false).
-         * @param ops Operand list.
          * @param oper Operator or function name.
+         * @param ops Operand list.
          */
-        Operation(bool fun, std::shared_ptr<ExpressionList> ops, std::string oper);
+        Operation(bool fun, std::string oper, std::shared_ptr<ExpressionList> ops);
+
+        /**
+         * Constructor for Operation, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param fun Whether this is a function call (true) or an inline
+         * operator (false).
+         * @param oper Operator or function name. The passed pointer will be
+         * free()d by this constructor!
+         * @param ops Operand list.
+         */
+        Operation(bool fun, char * oper, ExpressionList * ops);
 
         /**
          * Default destructor for Operation.
@@ -699,6 +934,18 @@ namespace cqasm2 { namespace ast {
          * @param expr Expression to typecast.
          */
         TypeCast(std::shared_ptr<Type> typ, std::shared_ptr<Expression> expr);
+
+        /**
+         * Constructor for TypeCast, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param typ Type to cast to.
+         * @param expr Expression to typecast.
+         */
+        TypeCast(Type * typ, Expression * expr);
 
         /**
          * Default destructor for TypeCast.
@@ -737,6 +984,20 @@ namespace cqasm2 { namespace ast {
          * @param expr Expression to typecast.
          */
         ShiftCast(bool dir, std::shared_ptr<Expression> shamt, std::shared_ptr<Expression> expr);
+
+        /**
+         * Constructor for ShiftCast, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param dir False: (&gt;&gt;a)b = shift decimal point left; true:
+         * (&lt;&lt;a)b = shift decimal point right.
+         * @param shamt Shift amount.
+         * @param expr Expression to typecast.
+         */
+        ShiftCast(bool dir, Expression * shamt, Expression * expr);
 
         /**
          * Default destructor for ShiftCast.
@@ -804,6 +1065,19 @@ namespace cqasm2 { namespace ast {
         MatrixLiteral1(std::shared_ptr<ExpressionList> data);
 
         /**
+         * Constructor for MatrixLiteral1, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param data Represents the data contained in this matrix. Each
+         * expression is alternatingly the real resp. imaginary part of the
+         * matrix. The matrix must furthermore be square.
+         */
+        MatrixLiteral1(ExpressionList * data);
+
+        /**
          * Default destructor for MatrixLiteral1.
          */
         virtual ~MatrixLiteral1() = default;
@@ -838,7 +1112,14 @@ namespace cqasm2 { namespace ast {
          * @param row Value to push.
          * @return this, to allow chaining.
          */
-        MatrixLiteral2 &push_row(std::shared_ptr<ExpressionList> row);
+        MatrixLiteral2 *push_row(std::shared_ptr<ExpressionList> row);
+
+        /**
+         * Appends to row vector. Returns reference to this to allow chaining.
+         * @param row Value to push.
+         * @return this, to allow chaining.
+         */
+        MatrixLiteral2 *push_row(ExpressionList * row);
 
     };
 
@@ -858,6 +1139,18 @@ namespace cqasm2 { namespace ast {
          * @param data Contained string literal.
          */
         StringLiteral(std::string data);
+
+        /**
+         * Constructor for StringLiteral, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param data Contained string literal. The passed pointer will be
+         * free()d by this constructor!
+         */
+        StringLiteral(char * data);
 
         /**
          * Default destructor for StringLiteral.
@@ -882,6 +1175,18 @@ namespace cqasm2 { namespace ast {
          * @param data Contained JSON string.
          */
         JsonLiteral(std::string data);
+
+        /**
+         * Constructor for JsonLiteral, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param data Contained JSON string. The passed pointer will be free()d
+         * by this constructor!
+         */
+        JsonLiteral(char * data);
 
         /**
          * Default destructor for JsonLiteral.
@@ -916,7 +1221,14 @@ namespace cqasm2 { namespace ast {
          * @param expr Value to push.
          * @return this, to allow chaining.
          */
-        ExpressionList &push_expr(std::shared_ptr<Expression> expr);
+        ExpressionList *push_expr(std::shared_ptr<Expression> expr);
+
+        /**
+         * Appends to expr vector. Returns reference to this to allow chaining.
+         * @param expr Value to push.
+         * @return this, to allow chaining.
+         */
+        ExpressionList *push_expr(Expression * expr);
 
     };
 
@@ -929,7 +1241,7 @@ namespace cqasm2 { namespace ast {
         /**
          * Vector of all the operands in this list.
          */
-        std::vector<std::shared_ptr<Operand>> exprs;
+        std::vector<std::shared_ptr<Operand>> opers;
 
         /**
          * Constructor for OperandList.
@@ -942,11 +1254,18 @@ namespace cqasm2 { namespace ast {
         virtual ~OperandList() = default;
 
         /**
-         * Appends to expr vector. Returns reference to this to allow chaining.
-         * @param expr Value to push.
+         * Appends to oper vector. Returns reference to this to allow chaining.
+         * @param oper Value to push.
          * @return this, to allow chaining.
          */
-        OperandList &push_expr(std::shared_ptr<Operand> expr);
+        OperandList *push_oper(std::shared_ptr<Operand> oper);
+
+        /**
+         * Appends to oper vector. Returns reference to this to allow chaining.
+         * @param oper Value to push.
+         * @return this, to allow chaining.
+         */
+        OperandList *push_oper(Operand * oper);
 
     };
 
@@ -976,7 +1295,7 @@ namespace cqasm2 { namespace ast {
          * @param id Value to push.
          * @return this, to allow chaining.
          */
-        IdentifierList &push_id(std::string id);
+        IdentifierList *push_id(std::string id);
 
     };
 
@@ -1004,12 +1323,37 @@ namespace cqasm2 { namespace ast {
         IndexEntry(std::shared_ptr<Expression> first);
 
         /**
+         * Constructor for IndexEntry, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param first First index in this range, or the selected index if
+         * singular.
+         */
+        IndexEntry(Expression * first);
+
+        /**
          * Constructor for IndexEntry.
          * @param first First index in this range, or the selected index if
          * singular.
          * @param last Last index in this range, or null if singular.
          */
         IndexEntry(std::shared_ptr<Expression> first, std::shared_ptr<Expression> last);
+
+        /**
+         * Constructor for IndexEntry, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param first First index in this range, or the selected index if
+         * singular.
+         * @param last Last index in this range, or null if singular.
+         */
+        IndexEntry(Expression * first, Expression * last);
 
         /**
          * Default destructor for IndexEntry.
@@ -1044,7 +1388,14 @@ namespace cqasm2 { namespace ast {
          * @param ent Value to push.
          * @return this, to allow chaining.
          */
-        IndexList &push_ent(std::shared_ptr<IndexEntry> ent);
+        IndexList *push_ent(std::shared_ptr<IndexEntry> ent);
+
+        /**
+         * Appends to ent vector. Returns reference to this to allow chaining.
+         * @param ent Value to push.
+         * @return this, to allow chaining.
+         */
+        IndexList *push_ent(IndexEntry * ent);
 
     };
 
@@ -1102,6 +1453,20 @@ namespace cqasm2 { namespace ast {
         AnnotationData(std::string target, std::string name);
 
         /**
+         * Constructor for AnnotationData, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param target Name of the target that this pragma/annotation is
+         * intended for. The passed pointer will be free()d by this constructor!
+         * @param name Name of the pragma/annotation. The passed pointer will be
+         * free()d by this constructor!
+         */
+        AnnotationData(char * target, char * name);
+
+        /**
          * Constructor for AnnotationData.
          * @param target Name of the target that this pragma/annotation is
          * intended for.
@@ -1110,6 +1475,22 @@ namespace cqasm2 { namespace ast {
          * annotation/pragma.
          */
         AnnotationData(std::string target, std::string name, std::shared_ptr<OperandList> ops);
+
+        /**
+         * Constructor for AnnotationData, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param target Name of the target that this pragma/annotation is
+         * intended for. The passed pointer will be free()d by this constructor!
+         * @param name Name of the pragma/annotation. The passed pointer will be
+         * free()d by this constructor!
+         * @param ops List of operands, if specified, that are attached to the
+         * annotation/pragma.
+         */
+        AnnotationData(char * target, char * name, OperandList * ops);
 
         /**
          * Default destructor for AnnotationData.
@@ -1132,7 +1513,7 @@ namespace cqasm2 { namespace ast {
         /**
          * Conditional expressions.
          */
-        std::vector<std::shared_ptr<Expression>> exprs;
+        std::vector<std::shared_ptr<Expression>> conds;
 
         /**
          * Constructor for GateType.
@@ -1141,16 +1522,35 @@ namespace cqasm2 { namespace ast {
         GateType(std::string name);
 
         /**
+         * Constructor for GateType, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Name of the gate. The passed pointer will be free()d by
+         * this constructor!
+         */
+        GateType(char * name);
+
+        /**
          * Default destructor for GateType.
          */
         virtual ~GateType() = default;
 
         /**
-         * Appends to expr vector. Returns reference to this to allow chaining.
-         * @param expr Value to push.
+         * Appends to cond vector. Returns reference to this to allow chaining.
+         * @param cond Value to push.
          * @return this, to allow chaining.
          */
-        GateType &push_expr(std::shared_ptr<Expression> expr);
+        GateType *push_cond(std::shared_ptr<Expression> cond);
+
+        /**
+         * Appends to cond vector. Returns reference to this to allow chaining.
+         * @param cond Value to push.
+         * @return this, to allow chaining.
+         */
+        GateType *push_cond(Expression * cond);
 
     };
 
@@ -1198,7 +1598,14 @@ namespace cqasm2 { namespace ast {
          * @param annot Value to push.
          * @return this, to allow chaining.
          */
-        UnresolvedGate &push_annot(std::shared_ptr<AnnotationData> annot);
+        UnresolvedGate *push_annot(std::shared_ptr<AnnotationData> annot);
+
+        /**
+         * Appends to annot vector. Returns reference to this to allow chaining.
+         * @param annot Value to push.
+         * @return this, to allow chaining.
+         */
+        UnresolvedGate *push_annot(AnnotationData * annot);
 
     };
 
@@ -1231,12 +1638,37 @@ namespace cqasm2 { namespace ast {
         NormalGate(std::shared_ptr<GateType> typ);
 
         /**
+         * Constructor for NormalGate, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param typ Contains the name of the gate and its conditional
+         * expressions.
+         */
+        NormalGate(GateType * typ);
+
+        /**
          * Constructor for NormalGate.
          * @param typ Contains the name of the gate and its conditional
          * expressions.
          * @param src Source operand list.
          */
         NormalGate(std::shared_ptr<GateType> typ, std::shared_ptr<OperandList> src);
+
+        /**
+         * Constructor for NormalGate, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param typ Contains the name of the gate and its conditional
+         * expressions.
+         * @param src Source operand list.
+         */
+        NormalGate(GateType * typ, OperandList * src);
 
         /**
          * Constructor for NormalGate.
@@ -1246,6 +1678,20 @@ namespace cqasm2 { namespace ast {
          * @param dest Destination operand list.
          */
         NormalGate(std::shared_ptr<GateType> typ, std::shared_ptr<OperandList> src, std::shared_ptr<OperandList> dest);
+
+        /**
+         * Constructor for NormalGate, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param typ Contains the name of the gate and its conditional
+         * expressions.
+         * @param src Source operand list.
+         * @param dest Destination operand list.
+         */
+        NormalGate(GateType * typ, OperandList * src, OperandList * dest);
 
         /**
          * Default destructor for NormalGate.
@@ -1263,7 +1709,7 @@ namespace cqasm2 { namespace ast {
         /**
          * Name of the label to jump to.
          */
-        std::string name;
+        std::string lbl;
 
         /**
          * The condition for jumping, or null for always.
@@ -1272,16 +1718,41 @@ namespace cqasm2 { namespace ast {
 
         /**
          * Constructor for IfGoto.
-         * @param name Name of the label to jump to.
+         * @param lbl Name of the label to jump to.
          */
-        IfGoto(std::string name);
+        IfGoto(std::string lbl);
+
+        /**
+         * Constructor for IfGoto, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param lbl Name of the label to jump to. The passed pointer will be
+         * free()d by this constructor!
+         */
+        IfGoto(char * lbl);
 
         /**
          * Constructor for IfGoto.
-         * @param name Name of the label to jump to.
+         * @param lbl Name of the label to jump to.
          * @param expr The condition for jumping, or null for always.
          */
-        IfGoto(std::string name, std::shared_ptr<Expression> expr);
+        IfGoto(std::string lbl, std::shared_ptr<Expression> expr);
+
+        /**
+         * Constructor for IfGoto, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param lbl Name of the label to jump to. The passed pointer will be
+         * free()d by this constructor!
+         * @param expr The condition for jumping, or null for always.
+         */
+        IfGoto(char * lbl, Expression * expr);
 
         /**
          * Default destructor for IfGoto.
@@ -1312,6 +1783,18 @@ namespace cqasm2 { namespace ast {
          * @param macro Macro that this gate was resolved to.
          */
         MacroCall(std::shared_ptr<NormalGate> gate, std::shared_ptr<MacroDef> macro);
+
+        /**
+         * Constructor for MacroCall, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param gate Gate description from the source code.
+         * @param macro Macro that this gate was resolved to.
+         */
+        MacroCall(NormalGate * gate, MacroDef * macro);
 
         /**
          * Default destructor for MacroCall.
@@ -1346,7 +1829,14 @@ namespace cqasm2 { namespace ast {
          * @param annot Value to push.
          * @return this, to allow chaining.
          */
-        Statement &push_annot(std::shared_ptr<AnnotationData> annot);
+        Statement *push_annot(std::shared_ptr<AnnotationData> annot);
+
+        /**
+         * Appends to annot vector. Returns reference to this to allow chaining.
+         * @param annot Value to push.
+         * @return this, to allow chaining.
+         */
+        Statement *push_annot(AnnotationData * annot);
 
     };
 
@@ -1366,6 +1856,17 @@ namespace cqasm2 { namespace ast {
          * @param data Data belonging to this pragma statement.
          */
         Pragma(std::shared_ptr<AnnotationData> data);
+
+        /**
+         * Constructor for Pragma, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param data Data belonging to this pragma statement.
+         */
+        Pragma(AnnotationData * data);
 
         /**
          * Default destructor for Pragma.
@@ -1400,7 +1901,7 @@ namespace cqasm2 { namespace ast {
     /**
      * Represents cQASM 1.0's qubit resource notation.
      */
-    class QubitRegister : public Resource {
+    class QubitRegister1 : public Resource {
     public:
 
         /**
@@ -1409,15 +1910,26 @@ namespace cqasm2 { namespace ast {
         std::shared_ptr<NumericLiteral> nqubits;
 
         /**
-         * Constructor for QubitRegister.
+         * Constructor for QubitRegister1.
          * @param nqubits Number of qubits.
          */
-        QubitRegister(std::shared_ptr<NumericLiteral> nqubits);
+        QubitRegister1(std::shared_ptr<NumericLiteral> nqubits);
 
         /**
-         * Default destructor for QubitRegister.
+         * Constructor for QubitRegister1, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param nqubits Number of qubits.
          */
-        virtual ~QubitRegister() = default;
+        QubitRegister1(NumericLiteral * nqubits);
+
+        /**
+         * Default destructor for QubitRegister1.
+         */
+        virtual ~QubitRegister1() = default;
 
     };
 
@@ -1450,12 +1962,39 @@ namespace cqasm2 { namespace ast {
         ScalarResource(std::shared_ptr<Type> typ, std::string name);
 
         /**
+         * Constructor for ScalarResource, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param typ Type of the resource.
+         * @param name Name of the resource. The passed pointer will be free()d
+         * by this constructor!
+         */
+        ScalarResource(Type * typ, char * name);
+
+        /**
          * Constructor for ScalarResource.
          * @param typ Type of the resource.
          * @param name Name of the resource.
          * @param init Initializer expression.
          */
         ScalarResource(std::shared_ptr<Type> typ, std::string name, std::shared_ptr<Expression> init);
+
+        /**
+         * Constructor for ScalarResource, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param typ Type of the resource.
+         * @param name Name of the resource. The passed pointer will be free()d
+         * by this constructor!
+         * @param init Initializer expression.
+         */
+        ScalarResource(Type * typ, char * name, Expression * init);
 
         /**
          * Default destructor for ScalarResource.
@@ -1499,6 +2038,20 @@ namespace cqasm2 { namespace ast {
         ArrayResource(std::shared_ptr<Type> typ, std::string name, std::shared_ptr<Expression> size);
 
         /**
+         * Constructor for ArrayResource, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param typ Type of the array entries.
+         * @param name Name of the resource. The passed pointer will be free()d
+         * by this constructor!
+         * @param size Array size expression.
+         */
+        ArrayResource(Type * typ, char * name, Expression * size);
+
+        /**
          * Constructor for ArrayResource.
          * @param typ Type of the array entries.
          * @param name Name of the resource.
@@ -1506,6 +2059,21 @@ namespace cqasm2 { namespace ast {
          * @param init Initializer expression.
          */
         ArrayResource(std::shared_ptr<Type> typ, std::string name, std::shared_ptr<Expression> size, std::shared_ptr<Expression> init);
+
+        /**
+         * Constructor for ArrayResource, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param typ Type of the array entries.
+         * @param name Name of the resource. The passed pointer will be free()d
+         * by this constructor!
+         * @param size Array size expression.
+         * @param init Initializer expression.
+         */
+        ArrayResource(Type * typ, char * name, Expression * size, Expression * init);
 
         /**
          * Default destructor for ArrayResource.
@@ -1538,6 +2106,19 @@ namespace cqasm2 { namespace ast {
         LetStatement(std::string name, std::shared_ptr<Expression> init);
 
         /**
+         * Constructor for LetStatement, intended to be used from YACC only.
+         * This version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Name of the resource. The passed pointer will be free()d
+         * by this constructor!
+         * @param init Initializer expression.
+         */
+        LetStatement(char * name, Expression * init);
+
+        /**
          * Default destructor for LetStatement.
          */
         virtual ~LetStatement() = default;
@@ -1567,11 +2148,36 @@ namespace cqasm2 { namespace ast {
         Mapping(std::string name);
 
         /**
+         * Constructor for Mapping, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Name of the mapping. The passed pointer will be free()d
+         * by this constructor!
+         */
+        Mapping(char * name);
+
+        /**
          * Constructor for Mapping.
          * @param name Name of the mapping.
          * @param expr Expression to map to.
          */
         Mapping(std::string name, std::shared_ptr<Expression> expr);
+
+        /**
+         * Constructor for Mapping, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Name of the mapping. The passed pointer will be free()d
+         * by this constructor!
+         * @param expr Expression to map to.
+         */
+        Mapping(char * name, Expression * expr);
 
         /**
          * Default destructor for Mapping.
@@ -1602,6 +2208,18 @@ namespace cqasm2 { namespace ast {
          * @param rvalue What to assign the lvalue to.
          */
         Assignment(std::shared_ptr<Expression> lvalue, std::shared_ptr<Expression> rvalue);
+
+        /**
+         * Constructor for Assignment, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param lvalue Expression to be assigned.
+         * @param rvalue What to assign the lvalue to.
+         */
+        Assignment(Expression * lvalue, Expression * rvalue);
 
         /**
          * Default destructor for Assignment.
@@ -1644,12 +2262,39 @@ namespace cqasm2 { namespace ast {
         MacroDef(std::string name, std::shared_ptr<Block> blk);
 
         /**
+         * Constructor for MacroDef, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Name of the macro subroutine. The passed pointer will be
+         * free()d by this constructor!
+         * @param blk Contents of the macro.
+         */
+        MacroDef(char * name, Block * blk);
+
+        /**
          * Constructor for MacroDef.
          * @param name Name of the macro subroutine.
          * @param blk Contents of the macro.
          * @param src Source parameter names.
          */
         MacroDef(std::string name, std::shared_ptr<Block> blk, std::shared_ptr<IdentifierList> src);
+
+        /**
+         * Constructor for MacroDef, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Name of the macro subroutine. The passed pointer will be
+         * free()d by this constructor!
+         * @param blk Contents of the macro.
+         * @param src Source parameter names.
+         */
+        MacroDef(char * name, Block * blk, IdentifierList * src);
 
         /**
          * Constructor for MacroDef.
@@ -1659,6 +2304,21 @@ namespace cqasm2 { namespace ast {
          * @param dest Destination parameter names.
          */
         MacroDef(std::string name, std::shared_ptr<Block> blk, std::shared_ptr<IdentifierList> src, std::shared_ptr<IdentifierList> dest);
+
+        /**
+         * Constructor for MacroDef, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Name of the macro subroutine. The passed pointer will be
+         * free()d by this constructor!
+         * @param blk Contents of the macro.
+         * @param src Source parameter names.
+         * @param dest Destination parameter names.
+         */
+        MacroDef(char * name, Block * blk, IdentifierList * src, IdentifierList * dest);
 
         /**
          * Default destructor for MacroDef.
@@ -1697,6 +2357,20 @@ namespace cqasm2 { namespace ast {
         MacroFor(std::string name, std::shared_ptr<IndexList> indices, std::shared_ptr<Block> blk);
 
         /**
+         * Constructor for MacroFor, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Name of the loop control variable. The passed pointer
+         * will be free()d by this constructor!
+         * @param indices Indices to iterate over.
+         * @param blk Contents of the macro.
+         */
+        MacroFor(char * name, IndexList * indices, Block * blk);
+
+        /**
          * Default destructor for MacroFor.
          */
         virtual ~MacroFor() = default;
@@ -1732,12 +2406,37 @@ namespace cqasm2 { namespace ast {
         MacroIfElse(std::shared_ptr<Expression> cond, std::shared_ptr<Block> blk_true);
 
         /**
+         * Constructor for MacroIfElse, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param cond Condition expression.
+         * @param blk_true Block to insert if the expression is true.
+         */
+        MacroIfElse(Expression * cond, Block * blk_true);
+
+        /**
          * Constructor for MacroIfElse.
          * @param cond Condition expression.
          * @param blk_true Block to insert if the expression is true.
          * @param blk_false Block to insert if the expression is false.
          */
         MacroIfElse(std::shared_ptr<Expression> cond, std::shared_ptr<Block> blk_true, std::shared_ptr<Block> blk_false);
+
+        /**
+         * Constructor for MacroIfElse, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param cond Condition expression.
+         * @param blk_true Block to insert if the expression is true.
+         * @param blk_false Block to insert if the expression is false.
+         */
+        MacroIfElse(Expression * cond, Block * blk_true, Block * blk_false);
 
         /**
          * Default destructor for MacroIfElse.
@@ -1762,6 +2461,17 @@ namespace cqasm2 { namespace ast {
          * @param fname Filename.
          */
         Include(std::shared_ptr<StringLiteral> fname);
+
+        /**
+         * Constructor for Include, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param fname Filename.
+         */
+        Include(StringLiteral * fname);
 
         /**
          * Default destructor for Include.
@@ -1793,11 +2503,36 @@ namespace cqasm2 { namespace ast {
         Subcircuit(std::string name);
 
         /**
+         * Constructor for Subcircuit, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Subcircuit name. The passed pointer will be free()d by
+         * this constructor!
+         */
+        Subcircuit(char * name);
+
+        /**
          * Constructor for Subcircuit.
          * @param name Subcircuit name.
          * @param iter Iteration count, or null if not specified.
          */
         Subcircuit(std::string name, std::shared_ptr<NumericLiteral> iter);
+
+        /**
+         * Constructor for Subcircuit, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Subcircuit name. The passed pointer will be free()d by
+         * this constructor!
+         * @param iter Iteration count, or null if not specified.
+         */
+        Subcircuit(char * name, NumericLiteral * iter);
 
         /**
          * Default destructor for Subcircuit.
@@ -1827,6 +2562,18 @@ namespace cqasm2 { namespace ast {
          * @param name Label name.
          */
         Label(std::string name);
+
+        /**
+         * Constructor for Label, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param name Label name. The passed pointer will be free()d by this
+         * constructor!
+         */
+        Label(char * name);
 
         /**
          * Default destructor for Label.
@@ -1861,15 +2608,22 @@ namespace cqasm2 { namespace ast {
          * @param gate Value to push.
          * @return this, to allow chaining.
          */
-        Bundle &push_gate(std::shared_ptr<Gate> gate);
+        Bundle *push_gate(std::shared_ptr<Gate> gate);
 
         /**
-         * Appends gate vector by another vector. Returns reference to this to
+         * Appends to gate vector. Returns reference to this to allow chaining.
+         * @param gate Value to push.
+         * @return this, to allow chaining.
+         */
+        Bundle *push_gate(Gate * gate);
+
+        /**
+         * Appends gates vector by another vector. Returns reference to this to
          * allow chaining.
          * @param gates Vector to push.
          * @return this, to allow chaining.
          */
-        Bundle &push_gates(std::vector<std::shared_ptr<Gate>> &gates);
+        Bundle *push_gates(std::vector<std::shared_ptr<Gate>> & gates);
 
     };
 
@@ -1918,7 +2672,14 @@ namespace cqasm2 { namespace ast {
          * @param stmt Value to push.
          * @return this, to allow chaining.
          */
-        Block &push_stmt(std::shared_ptr<Statement> stmt);
+        Block *push_stmt(std::shared_ptr<Statement> stmt);
+
+        /**
+         * Appends to stmt vector. Returns reference to this to allow chaining.
+         * @param stmt Value to push.
+         * @return this, to allow chaining.
+         */
+        Block *push_stmt(Statement * stmt);
 
     };
 
@@ -1941,6 +2702,19 @@ namespace cqasm2 { namespace ast {
          * @param blk Block of code representing the program.
          */
         Program(std::string version, std::shared_ptr<Block> blk);
+
+        /**
+         * Constructor for Program, intended to be used from YACC only. This
+         * version:
+         *  - uses char* for strings and bare pointers instead of
+         * std::shared_ptr<> encapsulations for inputs;
+         *  - calls free() on strings passed to it after constructing
+         * std::string instances.
+         * @param version Version string. The passed pointer will be free()d by
+         * this constructor!
+         * @param blk Block of code representing the program.
+         */
+        Program(char * version, Block * blk);
 
         /**
          * Default destructor for Program.

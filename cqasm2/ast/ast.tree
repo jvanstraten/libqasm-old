@@ -148,8 +148,8 @@ Operand:
 
         Operation: \
                 c bool fun Whether this is a function call (true) or an inline operator (false). |\
-                &c ExpressionList ops Operand list. |\
-                c std::string oper Operator or function name.
+                c std::string oper Operator or function name. |\
+                &c ExpressionList ops Operand list.
             / Represents any kind of operation.
 
         TypeCast: \
@@ -195,7 +195,7 @@ ExpressionList: \
     / Represents a list of expressions.
 
 OperandList: \
-        &v Operand expr Vector of all the operands in this list.
+        &v Operand oper Vector of all the operands in this list.
     / Represents a list of operands.
 
 IdentifierList: \
@@ -223,7 +223,7 @@ AnnotationData: \
 
 GateType: \
         c std::string name Name of the gate. |\
-        &v Expression expr Conditional expressions.
+        &v Expression cond Conditional expressions.
     / Represents the name of a gate and its conditions for execution.
 
 Gate:
@@ -240,7 +240,7 @@ Gate:
             / Represents a normal gate, expressed as an instruction.
 
         IfGoto: \
-                c std::string name Name of the label to jump to. |\
+                c std::string lbl Name of the label to jump to. |\
                 &o Expression expr The condition for jumping, or null for always.
             / Represents the syntactic sugar if-goto notation for branches.
 
@@ -266,7 +266,7 @@ Statement: \
             - std::string unique Uniquified name.
         / Represents a statement that declares a resource.
 
-        QubitRegister: \
+        QubitRegister1: \
                 &c NumericLiteral nqubits Number of qubits.
             / Represents cQASM 1.0's qubit resource notation.
 

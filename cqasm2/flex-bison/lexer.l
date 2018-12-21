@@ -151,14 +151,8 @@
 0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+[uU]?[a-zA-Z_]       WITHOUT_STR(BAD_NUMBER);
 0[bB][01]*\.[01]+[uU]?[a-zA-Z_]                     WITHOUT_STR(BAD_NUMBER);
 
-    /* Boolean literal keywords */
-(?i:true)                                           WITHOUT_STR(LIT_TRUE);
-(?i:false)                                          WITHOUT_STR(LIT_FALSE);
-
-    /* Mathematical constant keywords */
-(?i:pi)                                             WITHOUT_STR(LIT_PI);
-(?i:eu)                                             WITHOUT_STR(LIT_EU);
-(?i:im)                                             WITHOUT_STR(LIT_IM);
+    /* Named constant keywords */
+(?i:true|false|pi|eu|im)                            WITH_STR(LIT_NAMED);
 
     /* String literals */
 ["]                                                 BEGIN(STRING); WITHOUT_STR(STRING_OPEN);
