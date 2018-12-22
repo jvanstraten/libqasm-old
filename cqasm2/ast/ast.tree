@@ -14,8 +14,8 @@ derive: Node
 #include <sstream>
 #include <vector>
 
-#include "node.hpp"
-#include "operators.hpp"
+#include "cqasm2/ast/node.hpp"
+#include "cqasm2/ast/operators.hpp"
 
 using namespace cqasm2;
 

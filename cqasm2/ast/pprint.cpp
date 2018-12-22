@@ -6,23 +6,136 @@
 
 namespace cqasm2 { namespace ast {
 
+    /**
+     * Writes spaces to the output stream to get the indentation depth
+     * requested through opts.
+     * @param os The stream to output to.
+     * @param opts Pretty-printing options.
+     */
     static void insert_indent(std::ostream &os, const pprint_opts_t &opts) {
         for (int i = 0; i < opts.indent_width; i++) {
             os << "    ";
         }
     }
 
+    /**
+     * Inserts a newline, followed by the correct indentation depth.
+     * @param os The stream to output to.
+     * @param opts Pretty-printing options.
+     */
     static void insert_newline(std::ostream &os, const pprint_opts_t &opts) {
         os << std::endl;
         insert_indent(os, opts);
     }
 
+    /**
+     * Calls pprint() on the given node iff it is non-null. Otherwise writes
+     * $NULL_NODE$ to the output. Dollar signs are illegal in cQASM, so this
+     * text is guaranteed to remain an error if parsed again.
+     * @param node The node to call pprint() on.
+     * @param os The stream to output to.
+     * @param opts Pretty-printing options.
+     */
     static void safe_pprint(const std::shared_ptr<Node> &node, std::ostream &os, const pprint_opts_t &opts) {
         if (node) {
             node->pprint(os, opts);
         } else {
             os << "$NULL_NODE$";
         }
+    }
+
+    /**
+     * Prints a list of annotations. This does nothing when the vector is
+     * empty.
+     * @param annots The annotation vector to print.
+     * @param brk Whether to break the current line with a \ before printing
+     * the first annotation. Lines are always broken when multiple annotations
+     * are specified.
+     * @param os The stream to output to.
+     * @param opts Pretty-printing options.
+     */
+    static void pprint_annots(const std::vector<std::shared_ptr<AnnotationData>> &annots, bool brk, std::ostream &os, const pprint_opts_t &opts) {
+        pprint_opts_t iopts = opts;
+        iopts.indent_width += 2;
+        for (auto it = annots.begin(); it != annots.end(); it++) {
+            if (brk) {
+                os << " \\";
+                insert_newline(os, iopts);
+            } else {
+                os << " ";
+            }
+            os << "@";
+            safe_pprint(*it, os, iopts);
+            brk = true;
+        }
+    }
+
+    /**
+     * Prints a "gate type" (its name prefixed with the right number of c-
+     * strings and suffixed with the conditional expressions) using the
+     * specified name. This name may be different from that which is stored
+     * in the GateType node when the gate refers to a uniquified macro.
+     * @param gt Pointer to the GateType node. If null, the gate name is
+     * printed without conditional arguments.
+     * @param name Name of the gate to print, which may be different than
+     * what is stored inside the GateType.
+     * @param os The stream to output to.
+     * @param opts Pretty-printing options.
+     */
+    static void pprint_gate_type(const GateType *gt, const std::string &name, std::ostream &os, const pprint_opts_t &opts) {
+        int len = 0;
+        if (gt == nullptr) {
+            for (int i = 0; i < gt->conds.size(); i++) {
+                os << "c-";
+                len += 2;
+            }
+        }
+        os << name;
+        len += name.length();
+        len = 8 - len;
+        do {
+            os << " ";
+            len--;
+        } while (len > 0);
+        if (gt == nullptr) {
+            for (auto it = gt->conds.begin(); it != gt->conds.end(); it++) {
+                safe_pprint(*it, os, opts);
+                os << ", ";
+                // FIXME: this is kind of ugly; a gate without operands but with
+                // CDASH notation currently needs a comma at the end. This is
+                // primarily a parser thing of course, it's reasonably easy to fix
+                // here (print the comma in NormalGate::pprint iff there is one or
+                // more condition/control).
+            }
+        }
+    }
+
+    /**
+     * Prints a gate, including operands and annotations, using the specified
+     * gate name. This name may be different from that which is stored in the
+     * Gate node when the gate refers to a uniquified macro.
+     * @param gate Pointer to the NormalGate node. If null, $NULL$ is printed.
+     * @param name Name of the gate to print, which may be different than
+     * what is stored inside the Gate.
+     * @param os The stream to output to.
+     * @param opts Pretty-printing options.
+     */
+    static void pprint_gate(const NormalGate *gate, const std::string &name, std::ostream &os, const pprint_opts_t &opts) {
+        if (!gate) {
+            os << "$NULL$";
+            return;
+        }
+        pprint_opts_t iopts = opts;
+        iopts.min_prec = 0;
+        pprint_gate_type(gate->typ.get(), name, os, iopts);
+        if (gate->src) {
+            safe_pprint(gate->src, os, iopts);
+        }
+        if (gate->dest) {
+            os << " -> ";
+            safe_pprint(gate->dest, os, iopts);
+        }
+        pprint_annots(gate->annots, false, os, iopts);
     }
 
     void QubitType::pprint(std::ostream &os, const pprint_opts_t &opts) const {
@@ -355,70 +468,8 @@ namespace cqasm2 { namespace ast {
         }
     }
 
-    static void pprint_gate_type(const GateType *gt, const std::string &name, std::ostream &os, const pprint_opts_t &opts) {
-        int len = 0;
-        if (gt) {
-            for (int i = 0; i < gt->conds.size(); i++) {
-                os << "c-";
-                len += 2;
-            }
-        }
-        os << name;
-        len += name.length();
-        len = 8 - len;
-        do {
-            os << " ";
-            len--;
-        } while (len > 0);
-        if (gt) {
-            for (auto it = gt->conds.begin(); it != gt->conds.end(); it++) {
-                safe_pprint(*it, os, opts);
-                os << ", ";
-                // FIXME: this is kind of ugly; a gate without operands but with
-                // CDASH notation currently needs a comma at the end. This is
-                // primarily a parser thing of course, it's reasonably easy to fix
-                // here (print the comma in NormalGate::pprint iff there is one or
-                // more condition/control).
-            }
-        }
-    }
-
     void GateType::pprint(std::ostream &os, const pprint_opts_t &opts) const {
         pprint_gate_type(this, this->name, os, opts);
-    }
-
-    static void pprint_annots(const std::vector<std::shared_ptr<AnnotationData>> &annots, bool brk, std::ostream &os, const pprint_opts_t &opts) {
-        pprint_opts_t iopts = opts;
-        iopts.indent_width += 2;
-        for (auto it = annots.begin(); it != annots.end(); it++) {
-            if (brk) {
-                os << " \\";
-                insert_newline(os, iopts);
-            } else {
-                os << " ";
-            }
-            os << "@";
-            safe_pprint(*it, os, iopts);
-            brk = true;
-        }
-    }
-
-    static void pprint_gate(const NormalGate *gate, const std::string &name, std::ostream &os, const pprint_opts_t &opts) {
-        if (!gate) {
-            os << "$NULL$";
-            return;
-        }
-        pprint_opts_t iopts = opts;
-        iopts.min_prec = 0;
-        pprint_gate_type(gate->typ.get(), name, os, iopts);
-        if (gate->src) {
-            safe_pprint(gate->src, os, iopts);
-        }
-        if (gate->dest) {
-            os << " -> ";
-            safe_pprint(gate->dest, os, iopts);
-        }
-        pprint_annots(gate->annots, false, os, iopts);
     }
 
     void NormalGate::pprint(std::ostream &os, const pprint_opts_t &opts) const {

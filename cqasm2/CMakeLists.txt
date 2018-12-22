@@ -32,6 +32,15 @@ ADD_FLEX_BISON_DEPENDENCY(cQASM2Lexer cQASM2Parser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+set (AST_GEN ${CMAKE_CURRENT_BINARY_DIR}/ast.gen.cpp ${CMAKE_CURRENT_BINARY_DIR}/ast.gen.hpp)
+
+add_custom_command(
+    OUTPUT ${AST_GEN}
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/tree.py ${CMAKE_CURRENT_SOURCE_DIR}/ast/ast.tree
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/tree.py ${CMAKE_CURRENT_SOURCE_DIR}/ast/ast.tree
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
 file(GLOB_RECURSE LIBCQASM2_SRCS
   "ast/*.cpp"
   "ast/*.hpp"
@@ -43,6 +52,8 @@ add_library(
     cqasm2 SHARED
     ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/ast.gen.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/ast.gen.hpp
     ${LIBCQASM2_SRCS}
 )
 
