@@ -1,4 +1,11 @@
 
+"""
+This (admittingly rather messy) Python 3 script takes an (also rather messy)
+input file describing a class hierarchy, and generates boilerplate
+constructors, destructors, and some vector manipulation functions to make the
+class hierarchy hook easily into Bison as an AST.
+"""
+
 import sys
 import textwrap
 from collections import namedtuple

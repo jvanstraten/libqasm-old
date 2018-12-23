@@ -16,12 +16,16 @@ else ()
     set (CMAKE_CXX_STANDARD 11)
 endif ()
 
+
+# -----------------------------------------------------------------------------
+# Lexer/parser generation targets
+# -----------------------------------------------------------------------------
+
 BISON_TARGET(
     cQASM2Parser
     flex-bison/parser.y
     ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
 )
-#COMPILE_FLAGS "-Wall -d -t -g -r all"
 FLEX_TARGET(
     cQASM2Lexer
     flex-bison/lexer.l
@@ -29,8 +33,10 @@ FLEX_TARGET(
 )
 ADD_FLEX_BISON_DEPENDENCY(cQASM2Lexer cQASM2Parser)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+# -----------------------------------------------------------------------------
+# AST class generation targets
+# -----------------------------------------------------------------------------
 
 set (AST_GEN ${CMAKE_CURRENT_BINARY_DIR}/ast.gen.cpp ${CMAKE_CURRENT_BINARY_DIR}/ast.gen.hpp)
 
@@ -40,6 +46,25 @@ add_custom_command(
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/tree.py ${CMAKE_CURRENT_SOURCE_DIR}/ast/ast.tree
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+
+# -----------------------------------------------------------------------------
+# Include directories
+# -----------------------------------------------------------------------------
+
+# Since we're generating files, we need to add the build directory to our
+# includes.
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+# We also add one directory up as include directory. This allows "absolute"
+# include paths like "cqasm2/ast/ast.hpp" to be used anywhere, just like how
+# the includes should work in a project using libcqasm2.
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+
+# -----------------------------------------------------------------------------
+# Linking libcqasm2
+# -----------------------------------------------------------------------------
 
 file(GLOB_RECURSE LIBCQASM2_SRCS
   "ast/*.cpp"
@@ -57,13 +82,30 @@ add_library(
     ${LIBCQASM2_SRCS}
 )
 
-file(GLOB_RECURSE CQASM2CHECK_SRCS
-  "check/*.cpp"
-  "check/*.hpp"
+
+# -----------------------------------------------------------------------------
+# Building cqasm2tool
+# -----------------------------------------------------------------------------
+
+# cqasm2tool is an executable exposing some of libcqasm2's functionality to a
+# command line environment.
+
+file(GLOB_RECURSE CQASM2TOOL_SRCS
+  "cqasm2tool/*.cpp"
+  "cqasm2tool/*.hpp"
 )
 
-add_executable(cqasm2check ${CQASM2CHECK_SRCS})
-target_link_libraries(cqasm2check cqasm2)
+add_executable(cqasm2tool ${CQASM2TOOL_SRCS})
+
+target_link_libraries(
+    cqasm2tool
+    cqasm2
+)
+
+
+# -----------------------------------------------------------------------------
+# Library installation
+# -----------------------------------------------------------------------------
 
 # 
 # install(TARGETS libqasm2 RUNTIME DESTINATION bin)
