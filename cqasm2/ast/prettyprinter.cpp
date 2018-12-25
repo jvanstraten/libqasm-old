@@ -74,7 +74,7 @@ namespace cqasm2 { namespace ast {
      */
     void PrettyPrinter::pprint_gate_type(const std::shared_ptr<GateType> &gt, const std::string &name) {
         int len = 0;
-        if (gt == nullptr) {
+        if (gt != nullptr) {
             for (size_t i = 0; i < gt->conds.size(); i++) {
                 this->os << "c-";
                 len += 2;
@@ -87,7 +87,7 @@ namespace cqasm2 { namespace ast {
             this->os << " ";
             len--;
         } while (len > 0);
-        if (gt == nullptr) {
+        if (gt != nullptr) {
             for (auto it = gt->conds.begin(); it != gt->conds.end(); it++) {
                 this->safe_apply(*it);
                 this->os << ", ";
