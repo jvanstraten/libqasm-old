@@ -368,8 +368,8 @@ Block           : '{' OptNewline StatementList OptNewline '}'                   
                 ;
 
 /* Toplevel. */
-Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = new Program($2, $4);          std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; $$->pprint(std::cout, pprint_opts); std::cout << "-------------" << std::endl; }
-                | OptNewline VERSION OptNewline                                 { $$ = new Program($2, new Block()); std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; $$->pprint(std::cout, pprint_opts); std::cout << "-------------" << std::endl; }
+Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = new Program($2, $4);          std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; PrettyPrinter(std::cout).apply(std::shared_ptr<Program>($$)); std::cout << "-------------" << std::endl; }
+                | OptNewline VERSION OptNewline                                 { $$ = new Program($2, new Block()); std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; PrettyPrinter(std::cout).apply(std::shared_ptr<Program>($$)); std::cout << "-------------" << std::endl; }
                 ;
 
 

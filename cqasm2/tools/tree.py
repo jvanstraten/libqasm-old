@@ -59,6 +59,9 @@ class Member(object):
     def construct_always(self):
         return "c" in self._attrib
 
+    def recurse_into(self):
+        return "r" in self._attrib
+
     def should_pointer_init_free(self):
         return self.is_string()
 
@@ -169,10 +172,10 @@ class Member(object):
         if self.is_vector():
             return [
                 '        os << "[";',
-                '        for (auto it = this->%s.begin(); it != %s.end(); ) {' % (name, name),
+                '        for (auto it = this->%s.begin(); it != this->%s.end(); ) {' % (name, name),
                 '            os << %s;' % self.elem_to_ostream("*it"),
                 '            it++;',
-                '            if (it != %s.end()) {' % name,
+                '            if (it != this->%s.end()) {' % name,
                 '                os << ", ";',
                 '            }',
                 '        }',
@@ -529,7 +532,7 @@ s.append("         * @return Replacement for the given node.")
 s.append("         */")
 s.append("        template <class T>")
 s.append("        std::shared_ptr<T> apply(std::shared_ptr<T> node) {")
-s.append("            return dynamic_cast<std::shared_ptr<T>>(this->apply_without_cast(node));")
+s.append("            return std::dynamic_pointer_cast<T>(this->apply_without_cast(node));")
 s.append("        }")
 s.append("")
 s.append("    protected:")
@@ -590,6 +593,14 @@ for cls in toplevel.iter_leaves():
     s.append("     * @return Replacement for the given %s." % cls.name)
     s.append("     */")
     s.append("    std::shared_ptr<%s> Transformation::apply_to(std::shared_ptr<%s> node) {" % (cls.name, cls.name))
+    for member in cls.members:
+        if member.recurse_into():
+            if member.is_vector():
+                s.append("        for (auto it = node->%s.begin(); it != node->%s.end(); ) {" % (member.member_name(), member.member_name()))
+                s.append("            *it = this->apply(*it);")
+                s.append("        }")
+            else:
+                s.append("        node->%s = this->apply(node->%s);" % (member.member_name(), member.member_name()))
     s.append("        return node;")
     s.append("    }")
     s.append("")

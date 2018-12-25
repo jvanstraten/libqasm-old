@@ -103,14 +103,6 @@ namespace cqasm2 { namespace ast {
          */
         virtual operator std::string() const = 0;
 
-        /**
-         * Pretty-print to the given output stream with the given indentation
-         * level.
-         * @param os Stream to output to.
-         * @param opts Structure containing printing options.
-         */
-        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const = 0;
-
     };
 
 }}

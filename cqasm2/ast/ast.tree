@@ -21,15 +21,6 @@ using namespace cqasm2;
 
 namespace cqasm2 { namespace ast {
 
-@header_leaf
-        /**
-         * Pretty-print to the given output stream with the given indentation
-         * level.
-         * @param os Stream to output to.
-         * @param opts Structure containing printing options.
-         */
-        virtual void pprint(std::ostream &os, const pprint_opts_t &opts) const override;
-
 @header_foot
 }}
 
@@ -62,8 +53,8 @@ Operand:
 
             NumericType: \
                     c bool has_sign Whether this is a signed or unsigned type. |\
-                    &o Expression ibits Number of bits before the decimal separator. |\
-                    &o Expression fbits Number of bits after the decimal separator.
+                    &ro Expression ibits Number of bits before the decimal separator. |\
+                    &ro Expression fbits Number of bits after the decimal separator.
                 / Represents a numeric type token, such as "uint<64>".
 
             FloatType:
@@ -74,7 +65,7 @@ Operand:
 
         ### ParsedType: \
         ###         c cqasm2::typesystem::Type typ Parsed type. |\
-        ###         &o TypeLiteral Original AST node that was used to construct this literal.
+        ###         &ro TypeLiteral Original AST node that was used to construct this literal.
         ###     / Represents a parsed type.
 
     Expression:
@@ -105,14 +96,14 @@ Operand:
 
         ### ParsedLiteral: \
         ###         c cqasm2::typesystem::Value val Parsed value of the literal. |\
-        ###         &o NumericLiteral node Original AST node that was used to construct this literal.
+        ###         &ro NumericLiteral node Original AST node that was used to construct this literal.
         ###     / Represents a numeric literal; anything ranging from "10" to
         ###     / "0xDEADC0DE" to "im". When printing, the printed literal will
         ###     / always print a representation of val, but may use the original
         ###     / AST node to choose between equivalent representations.
 
         ArrayLiteral: \
-                &c ExpressionList data Data contained within the array literal.
+                &rc ExpressionList data Data contained within the array literal.
             / Represents array literals.
 
         Reference:
@@ -126,62 +117,62 @@ Operand:
                 / used in.
 
             ResourceRef: \
-                    &c Resource res Resolved resource. |\
-                    &o Identifier id Original identifier that was used for this reference, if any.
+                    &rc Resource res Resolved resource. |\
+                    &ro Identifier id Original identifier that was used for this reference, if any.
                 / Represents an identifier that was resolved to a resource. When
                 / printing, the uniquified name of the resource is used.
 
             MacroParamRef: \
-                    &c MacroDef macro Macro definition this parameter was resolved to. |\
+                    &rc MacroDef macro Macro definition this parameter was resolved to. |\
                     c int param Parameter index. |\
-                    &o Identifier id Original identifier that was used for this reference, if any.
+                    &ro Identifier id Original identifier that was used for this reference, if any.
                 / Represents an identifier that was resolved to one of the
                 / parameters of a macro def statement.
 
             MacroIterRef: \
-                    &c MacroFor macro For loop that this parameter was resolved to. |\
-                    &o Identifier id Original identifier that was used for this reference, if any.
+                    &rc MacroFor macro For loop that this parameter was resolved to. |\
+                    &ro Identifier id Original identifier that was used for this reference, if any.
                 / Represents an identifier that was resolved to the loop variable
                 / of a macro for statement.
 
             LabelRef: \
-                    &c Label lbl Label that this identifier was resolved to. |\
-                    &o Identifier id Original identifier that was used for this reference, if any.
+                    &rc Label lbl Label that this identifier was resolved to. |\
+                    &ro Identifier id Original identifier that was used for this reference, if any.
                 / Represents an identifier that was resolved to a label.
 
         Subscript: \
-                &c Expression expr Expression to disambiguate with subscript notation. |\
+                &rc Expression expr Expression to disambiguate with subscript notation. |\
                 c std::string subscript The subscript text.
             / Represents a disambiguation subscript. This is used for qubits,
             / to select between the qubit itself and its measurement register
             / in contexts where both are allowed.
 
         Indexation: \
-                &c Expression expr Expression to index. |\
-                &c IndexList indices List of index entries to index by.
+                &rc Expression expr Expression to index. |\
+                &rc IndexList indices List of index entries to index by.
             / Represents an index notation, i.e. of the form "a[b]".
 
         Operation: \
                 sc operator_t oper Operator description. |\
-                &c Expression op1 Operand 1. |\
-                &o Expression op2 Operand 2, or null if unary. |\
-                &o Expression op3 Operand 3, or null if unary/binary.
+                &rc Expression op1 Operand 1. |\
+                &ro Expression op2 Operand 2, or null if unary. |\
+                &ro Expression op3 Operand 3, or null if unary/binary.
             / Represents an operator.
 
         Function: \
                 c std::string name Function name. |\
-                &c ExpressionList ops Operand list.
+                &rc ExpressionList ops Operand list.
             / Represents a function call.
 
         TypeCast: \
-                &c Type typ Type to cast to. |\
-                &c Expression expr Expression to typecast.
+                &rc Type typ Type to cast to. |\
+                &rc Expression expr Expression to typecast.
             / Represents a typecast expression.
 
         ShiftCast: \
-                c bool dir False: (&gt;&gt;a)b = shift decimal point left; true: (&lt;&lt;a)b = shift decimal point right. |\
-                &c Expression shamt Shift amount. |\
-                &c Expression expr Expression to typecast.
+                c bool dir False: (&rgt;&rgt;a)b = shift decimal point left; true: (&rlt;&rlt;a)b = shift decimal point right. |\
+                &rc Expression shamt Shift amount. |\
+                &rc Expression expr Expression to typecast.
             / Represents a shift-decimal-point typecast expression.
 
         ErroneousExpression:
@@ -192,11 +183,11 @@ Operand:
         / Represents a matrix literal.
 
         MatrixLiteral1: \
-                &c ExpressionList data Represents the data contained in this matrix. Each expression is alternatingly the real resp. imaginary part of the matrix. The matrix must furthermore be square.
+                &rc ExpressionList data Represents the data contained in this matrix. Each expression is alternatingly the real resp. imaginary part of the matrix. The matrix must furthermore be square.
             / cQASM 1.0 notation for a matrix.
 
         MatrixLiteral2: \
-                &v ExpressionList row List of rows. The index into the enclosed ExpressionList is the column index, and each individual Expression is cast to a complex number.
+                &rv ExpressionList row List of rows. The index into the enclosed ExpressionList is the column index, and each individual Expression is cast to a complex number.
             / cQASM 2.0 notation for a matrix.
 
     StringLiteral: \
@@ -208,15 +199,15 @@ Operand:
         / Represents a JSON literal.
 
     ### ParsedJsonLiteral: \
-    ###         &c nlohmann::json json JSON object representing this literal.
+    ###         &rc nlohmann::json json JSON object representing this literal.
     ###     / Represents a parsed JSON literal.
 
 ExpressionList: \
-        &v Expression expr Vector of all the expressions in this list.
+        &rv Expression expr Vector of all the expressions in this list.
     / Represents a list of expressions.
 
 OperandList: \
-        &v Operand oper Vector of all the operands in this list.
+        &rv Operand oper Vector of all the operands in this list.
     / Represents a list of operands.
 
 IdentifierList: \
@@ -224,12 +215,12 @@ IdentifierList: \
     / Represents a list of identifiers.
 
 IndexEntry: \
-        &c Expression first First index in this range, or the selected index if singular. |\
-        &o Expression last Last index in this range, or null if singular.
+        &rc Expression first First index in this range, or the selected index if singular. |\
+        &ro Expression last Last index in this range, or null if singular.
     / Represents either a singular entry or a range within a list of indices.
 
 IndexList: \
-        &v IndexEntry ent Vector of all the expressions in this list.
+        &rv IndexEntry ent Vector of all the expressions in this list.
     / Represents a list of indices.
 
 StringBuilder: \
@@ -239,48 +230,48 @@ StringBuilder: \
 AnnotationData: \
         c std::string target Name of the target that this pragma/annotation is intended for. |\
         c std::string name Name of the pragma/annotation. |\
-        &o OperandList ops List of operands, if specified, that are attached to the annotation/pragma.
+        &ro OperandList ops List of operands, if specified, that are attached to the annotation/pragma.
     / Represents the data contained in an annotation or pragma.
 
 GateType: \
         c std::string name Name of the gate. |\
-        &v Expression cond Conditional expressions.
+        &rv Expression cond Conditional expressions.
     / Represents the name of a gate and its conditions for execution.
 
 Gate:
     / Represents a gate that may or may not have been resolved.
 
     UnresolvedGate: \
-            &v AnnotationData annot Gate annotations.
+            &rv AnnotationData annot Gate annotations.
         / Represents an unresolved gate, including annotations.
 
         NormalGate: \
-                &c GateType typ Contains the name of the gate and its conditional expressions. |\
-                &o OperandList src Source operand list. |\
-                &o OperandList dest Destination operand list.
+                &rc GateType typ Contains the name of the gate and its conditional expressions. |\
+                &ro OperandList src Source operand list. |\
+                &ro OperandList dest Destination operand list.
             / Represents a normal gate, expressed as an instruction.
 
         IfGoto: \
-                &c Reference lbl Name of the label to jump to. |\
-                &o Expression cond The condition for jumping, or null for always.
+                &rc Reference lbl Name of the label to jump to. |\
+                &ro Expression cond The condition for jumping, or null for always.
             / Represents the syntactic sugar if-goto notation for branches.
 
     ### JsonGate: \
-    ###         &c NormalGate gate Gate description from the source code. |\
-    ###         &c nlohmann::json json JSON object from the definition file that describes this gate.
+    ###         &rc NormalGate gate Gate description from the source code. |\
+    ###         &rc nlohmann::json json JSON object from the definition file that describes this gate.
     ###     / Represents a gate that was resolved to the JSON specification.
 
     MacroCall: \
-            &c NormalGate gate Gate description from the source code. |\
-            &c MacroDef macro Macro that this gate was resolved to.
+            &rc NormalGate gate Gate description from the source code. |\
+            &rc MacroDef macro Macro that this gate was resolved to.
         / Represents a call to a macro.
 
 Statement: \
-        &v AnnotationData annot Statement annotations.
+        &rv AnnotationData annot Statement annotations.
     / Represents a statement.
 
     Pragma: \
-            &c AnnotationData data Data belonging to this pragma statement.
+            &rc AnnotationData data Data belonging to this pragma statement.
         / Represents a pragma statement.
 
     Resource: \
@@ -288,64 +279,64 @@ Statement: \
         / Represents a statement that declares a resource.
 
         QubitRegister1: \
-                &c NumericLiteral nqubits Number of qubits.
+                &rc NumericLiteral nqubits Number of qubits.
             / Represents cQASM 1.0's qubit resource notation.
 
         ScalarResource: \
-                &c Type typ Type of the resource. |\
+                &rc Type typ Type of the resource. |\
                 c std::string name Name of the resource. |\
-                &o Expression init Initializer expression.
+                &ro Expression init Initializer expression.
             / Represents a scalar resource declaration.
 
         ArrayResource: \
-                &c Type typ Type of the array entries. |\
+                &rc Type typ Type of the array entries. |\
                 c std::string name Name of the resource. |\
-                &c Expression size Array size expression. |\
-                &o Expression init Initializer expression.
+                &rc Expression size Array size expression. |\
+                &ro Expression init Initializer expression.
             / Represents an array resource declaration.
 
         LetStatement: \
                 c std::string name Name of the resource. |\
-                &c Expression init Initializer expression.
+                &rc Expression init Initializer expression.
             / Represents a "let" statement.
 
     Mapping: \
             c std::string name Name of the mapping. |\
-            &o Expression expr Expression to map to.
+            &ro Expression expr Expression to map to.
         / Represents a statement that declares a mapping.
 
     Assignment: \
-            &c Expression lvalue Expression to be assigned. |\
-            &c Expression rvalue What to assign the lvalue to.
+            &rc Expression lvalue Expression to be assigned. |\
+            &rc Expression rvalue What to assign the lvalue to.
         / Represents an assignment statement.
 
     MacroDef: \
             c std::string name Name of the macro subroutine. |\
-            &c Block blk Contents of the macro. |\
-            &o IdentifierList src Source parameter names. |\
-            &o IdentifierList dest Destination parameter names. |\
+            &rc Block blk Contents of the macro. |\
+            &ro IdentifierList src Source parameter names. |\
+            &ro IdentifierList dest Destination parameter names. |\
             - std::string unique Uniquified name. This must be set when anything is set to refer to this resource.
         / Represents a macro subroutine.
 
     MacroFor: \
             c std::string iter Name of the loop control variable. |\
-            &c IndexList indices Indices to iterate over. |\
-            &c Block blk Contents of the macro.
+            &rc IndexList indices Indices to iterate over. |\
+            &rc Block blk Contents of the macro.
         / Represents a macro for loop.
 
     MacroIfElse: \
-            &c Expression cond Condition expression. |\
-            &c Block blk_true Block to insert if the expression is true. |\
-            &o Block blk_false Block to insert if the expression is false.
+            &rc Expression cond Condition expression. |\
+            &rc Block blk_true Block to insert if the expression is true. |\
+            &ro Block blk_false Block to insert if the expression is false.
         / Represents a macro if/else.
 
     Include: \
-            &c StringLiteral fname Filename.
+            &rc StringLiteral fname Filename.
         / Represents an include statement.
 
     Subcircuit: \
             c std::string name Subcircuit name. |\
-            &o NumericLiteral iter Iteration count, or null if not specified.
+            &ro NumericLiteral iter Iteration count, or null if not specified.
         / Represents a subcircuit header.
 
     Label: \
@@ -354,7 +345,7 @@ Statement: \
         / Represents a label for classical flow control.
 
     Bundle: \
-            &Vv Gate gate List of gates in this bundle.
+            &rVv Gate gate List of gates in this bundle.
         / Represents a collection of gates.
 
     ErroneousStatement:
@@ -362,9 +353,9 @@ Statement: \
         / recover from errors.
 
 Block: \
-        &v Statement stmt Vector of all statements in this list.
+        &rv Statement stmt Vector of all statements in this list.
     / Represents a collection of statements and name resolution information.
 
 Program: \
         c std::string version Version string. |\
-        &c Block blk Block of code representing the program.
+        &rc Block blk Block of code representing the program.

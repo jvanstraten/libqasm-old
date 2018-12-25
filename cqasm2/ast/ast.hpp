@@ -9,5 +9,6 @@
 #include "operators.hpp"
 #include "node.hpp"
 #include "ast.gen.hpp"
+#include "prettyprinter.hpp"
 
 #endif
