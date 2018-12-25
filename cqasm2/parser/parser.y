@@ -1,42 +1,85 @@
-%{
+
+%code requires
+{
     #include <cstdlib>
     #include <string>
     #include <iostream>
-    #include <string.h>
+    #include <cstring>
+    #include <stdexcept>
     #include "cqasm2/ast/ast.hpp"
-    void yyerror(char const *s);
+
+    using namespace cqasm2::ast;
+
+    // FIXME: move to a proper header. parser.hpp should NOT be visible to the
+    // application, because it is an absolute namespace mess.
+    namespace cqasm2 {
+
+        /**
+         * Parses a cQASM 2.0 file.
+         * @param fname Name of the file to parse.
+         * @param msgs Pointer to an output stream to print error messages to
+         * (there can be more than one), or null to suppress error messages.
+         * @return A newly allocated Program AST node (using the new keyword)
+         * for the cQASM 2.0 file upon success, or null upon failure.
+         */
+        std::shared_ptr<Program> parse(const std::string fname, std::ostream *msgs);
+    }
+
+    /*
+     * The following global variables are private to flex/bison. Do not use
+     * them directly!
+     * FIXME: flex/bison is currently not configured to be reentrant, which
+     * is ugly. Also, this stuff certainly does not belong in the global
+     * namespace!
+     */
+    extern void yyerror(char const *s);
     extern int yylex(void);
     extern int yylineno;
-    bool yyrecovered;
+    extern bool yyrecovered;
+    extern FILE *yyin;
+    extern const char *yyfname;
+    extern std::ostream *yymsgs;
+    extern Program *yytop;
+}
+
+%code top
+{
+    #include <iostream>
+    #include "cqasm2/ast/ast.hpp"
+
     using namespace cqasm2::ast;
-    pprint_opts_t pprint_opts;
-%}
+
+    bool yyrecovered = false;
+    const char *yyfname = nullptr;
+    std::ostream *yymsgs = nullptr;
+    Program *yytop = nullptr;
+}
 
 /* YYSTYPE union */
 %union {
-    char                            *str;
-    cqasm2::ast::Type               *typ;
-    cqasm2::ast::NumericLiteral     *nlit;
-    cqasm2::ast::ArrayLiteral       *alit;
-    cqasm2::ast::Expression         *expr;
-    cqasm2::ast::ExpressionList     *expl;
-    cqasm2::ast::IndexEntry         *idxe;
-    cqasm2::ast::IndexList          *idxl;
-    cqasm2::ast::MatrixLiteral2     *mat2;
-    cqasm2::ast::MatrixLiteral      *mat;
-    cqasm2::ast::StringBuilder      *strb;
-    cqasm2::ast::StringLiteral      *strl;
-    cqasm2::ast::JsonLiteral        *jsl;
-    cqasm2::ast::Operand            *oper;
-    cqasm2::ast::OperandList        *opl;
-    cqasm2::ast::IdentifierList     *idl;
-    cqasm2::ast::AnnotationData     *adat;
-    cqasm2::ast::GateType           *gtyp;
-    cqasm2::ast::UnresolvedGate     *gate;
-    cqasm2::ast::Bundle             *bun;
-    cqasm2::ast::Statement          *stmt;
-    cqasm2::ast::Block              *blk;
-    cqasm2::ast::Program            *prgm;
+    char           *str;
+    Type           *typ;
+    NumericLiteral *nlit;
+    ArrayLiteral   *alit;
+    Expression     *expr;
+    ExpressionList *expl;
+    IndexEntry     *idxe;
+    IndexList      *idxl;
+    MatrixLiteral2 *mat2;
+    MatrixLiteral  *mat;
+    StringBuilder  *strb;
+    StringLiteral  *strl;
+    JsonLiteral    *jsl;
+    Operand        *oper;
+    OperandList    *opl;
+    IdentifierList *idl;
+    AnnotationData *adat;
+    GateType       *gtyp;
+    UnresolvedGate *gate;
+    Bundle         *bun;
+    Statement      *stmt;
+    Block          *blk;
+    Program        *prgm;
 };
 
 /* Typenames for nonterminals */
@@ -368,12 +411,68 @@ Block           : '{' OptNewline StatementList OptNewline '}'                   
                 ;
 
 /* Toplevel. */
-Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = new Program($2, $4);          std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; PrettyPrinter(std::cout).apply(std::shared_ptr<Program>($$)); std::cout << "-------------" << std::endl; }
-                | OptNewline VERSION OptNewline                                 { $$ = new Program($2, new Block()); std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; PrettyPrinter(std::cout).apply(std::shared_ptr<Program>($$)); std::cout << "-------------" << std::endl; }
+Program         : OptNewline VERSION Newline StatementList OptNewline           { $$ = yytop = new Program($2, $4);         /* std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; PrettyPrinter(std::cout).apply(std::shared_ptr<Program>($$)); std::cout << "-------------" << std::endl; */ }
+                | OptNewline VERSION OptNewline                                 { $$ = yytop = new Program($2, new Block());/* std::cout << std::string(*$$) << std::endl << "-------------" << std::endl; PrettyPrinter(std::cout).apply(std::shared_ptr<Program>($$)); std::cout << "-------------" << std::endl; */ }
                 ;
 
 
 %%
 void yyerror(char const *s) {
-    printf("On %d:%d: %s\n", yylloc.first_line, yylloc.first_column, s);
+    if (yymsgs != nullptr) {
+        *yymsgs << yyfname << "(" << yylloc.first_line << ":" << yylloc.first_column << "-" << yylloc.last_line << ":" << yylloc.last_column << "): " << s;
+    }
+}
+
+namespace cqasm2 {
+
+    std::shared_ptr<Program> parse(const std::string fname, std::ostream *msgs) {
+
+        // Make sure we're not already parsing. NOTE: this is not foolproof, nor is
+        // it intended to be. But if you do ever get this, you did something very
+        // wrong.
+        static volatile bool parsing = false;
+        if (parsing) {
+            throw std::runtime_error("Recursive/threaded call to cqasm2::parse() detected! cqasm2::parse() is not reentrant!");
+        }
+        parsing = true;
+
+        // Try to open the specified file.
+        yyin = fopen(fname.c_str(), "r");
+        if (!yyin) {
+            std::ostringstream sb;
+            sb << "Failed to open input file " << fname << ": " << strerror(errno);
+            throw std::runtime_error(sb.str());
+        }
+
+        // Initialize globals.
+        yyfname = fname.c_str();
+        yymsgs = msgs;
+
+        // Reset error state.
+        yyrecovered = false;
+        yytop = nullptr;
+
+        // Do the actual parsing.
+        int ret = yyparse();
+
+        // Close the input file.
+        fclose(yyin);
+
+        // If there was any parse error but yytop was set (that is, there was a
+        // successful recovery), delete yytop so we can pass nullptr to indicate
+        // there was an error anyway.
+        if (ret || yyrecovered) {
+            delete yytop;
+            yytop = nullptr;
+        }
+        std::shared_ptr<Program> top = std::shared_ptr<Program>(yytop);
+
+        // Mark that we're done parsing.
+        yyfname = nullptr;
+        yymsgs = nullptr;
+        parsing = false;
+
+        return top;
+    }
+
 }

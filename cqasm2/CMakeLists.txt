@@ -24,12 +24,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
 
 BISON_TARGET(
     cQASM2Parser
-    flex-bison/parser.y
+    parser/parser.y
     ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
 )
 FLEX_TARGET(
     cQASM2Lexer
-    flex-bison/lexer.l
+    parser/lexer.l
     ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp
 )
 ADD_FLEX_BISON_DEPENDENCY(cQASM2Lexer cQASM2Parser)

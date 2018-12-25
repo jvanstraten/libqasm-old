@@ -9,19 +9,12 @@ extern bool yyrecovered;
 int main(int argc, const char **argv) {
 
     if (argc > 1) {
-        yyin = fopen(argv[1], "r");
-        if (!yyin) {
-            perror("failed to open input file");
-            exit(2);
+        auto p = parse(std::string(argv[1]), &std::cerr);
+        if (p) {
+            std::cout << std::string(*p) << std::endl;
+            std::cout << "=================" << std::endl;
+            PrettyPrinter(std::cout).apply(p);
         }
-        yyrecovered = false;
-        int ret = yyparse();
-        if (ret || yyrecovered) {
-            exit(1);
-        } else {
-            printf("The specified file is valid cQASM 2.0!\n");
-        }
-        fclose(yyin);
         exit(0);
     } else {
         printf("Usage: %s <cqasm-file>\n", argv[0]);

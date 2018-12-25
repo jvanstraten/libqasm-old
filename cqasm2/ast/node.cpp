@@ -14,12 +14,25 @@ namespace cqasm2 { namespace ast {
      * "<internal>" with line 1 column 1.
      */
     Node::Node() {
-        // TODO: grab from Yacc globals!
-        this->source = "<internal>";
-        this->first_line   = yylloc.first_line;
-        this->first_column = yylloc.first_column;
-        this->last_line    = yylloc.last_line;
-        this->last_column  = yylloc.last_column;
+        if (yyfname != nullptr) {
+
+            // We're parsing; take data from flex.
+            this->source       = std::string(yyfname);
+            this->first_line   = yylloc.first_line;
+            this->first_column = yylloc.first_column;
+            this->last_line    = yylloc.last_line;
+            this->last_column  = yylloc.last_column;
+
+        } else {
+
+            // We're not parsing, set source to <internal>.
+            this->source       = "<internal>";
+            this->first_line   = 1;
+            this->first_column = 1;
+            this->last_line    = 1;
+            this->last_column  = 1;
+
+        }
     }
 
     /**
