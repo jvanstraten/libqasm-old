@@ -85,7 +85,7 @@ namespace cqasm2 { namespace ast {
     static void pprint_gate_type(const GateType *gt, const std::string &name, std::ostream &os, const pprint_opts_t &opts) {
         int len = 0;
         if (gt == nullptr) {
-            for (int i = 0; i < gt->conds.size(); i++) {
+            for (size_t i = 0; i < gt->conds.size(); i++) {
                 os << "c-";
                 len += 2;
             }

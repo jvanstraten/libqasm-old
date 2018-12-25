@@ -16,6 +16,7 @@ else ()
     set (CMAKE_CXX_STANDARD 11)
 endif ()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
 
 # -----------------------------------------------------------------------------
 # Lexer/parser generation targets

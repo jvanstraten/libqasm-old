@@ -202,186 +202,201 @@ class Class(object):
             s.append(c.classlist())
         return "\n".join(s)
 
+    def iter_all(self):
+        yield self
+        for c in self.children:
+            for x in c.iter_all():
+                yield x
+        raise StopIteration()
+
+    def iter_leaves(self):
+        if not self.children:
+            yield self
+            raise StopIteration()
+        for c in self.children:
+            for x in c.iter_leaves():
+                yield x
+        raise StopIteration()
+
     def generate(self, properties, header_leaf):
         hdr = []
         src = []
 
-        # Class header.
-        if self.doc:
-            hdr.append(comment(1, [" ".join(map(str.strip, self.doc))]))
         if self.parent:
+
+            # Class header.
+            if self.doc:
+                hdr.append(comment(1, [" ".join(map(str.strip, self.doc))]))
             hdr.append("    class %s : public %s {" % (self.name, self.parent.name))
-        elif properties["derive"]:
-            hdr.append("    class %s : public %s {" % (self.name, properties["derive"]))
-        else:
-            hdr.append("    class %s {" % (self.name))
-        hdr.append("    public:")
-        hdr.append("")
-
-        # Class members declarations.
-        for member in self.members:
-            hdr.append(comment(2, [member.member_doc()]))
-            hdr.append("        %s %s;" % (member.member_type(), member.member_name()))
+            hdr.append("    public:")
             hdr.append("")
 
-        # Constructor(s).
-        need_more_cons = True
-        num_opt_total = 0
-        while need_more_cons:
-            need_more_cons = False
-            num_opt = num_opt_total
-            num_opt_total += 1
-
-            normal_args = []
-            normal_doc = ["Constructor for %s." % self.name]
-            normal_inits = []
-            pointer_args = []
-            pointer_doc = [
-                "Constructor for %s, intended to be used from YACC only. This version:" % self.name,
-                " - uses char* for strings and bare pointers instead of std::shared_ptr<> encapsulations for inputs;",
-                " - calls free() on strings passed to it after constructing std::string instances."
-            ]
-            pointer_inits = []
-            pointer_frees = []
+            # Class members declarations.
             for member in self.members:
-                use_default = True
-                if member.construct_always():
-                    use_default = False
-                elif member.construct_optional():
-                    if num_opt > 0:
-                        use_default = False
-                        num_opt -= 1
-                    else:
-                        need_more_cons = True
-
-                if not use_default:
-                    name = member.init_name()
-                    normal_args.append("%s %s" % (member.normal_init_type(), name))
-                    pointer_args.append("%s %s" % (member.pointer_init_type(), name))
-                    normal_doc.append("@param %s %s" % (name, member.normal_init_doc()))
-                    pointer_doc.append("@param %s %s" % (name, member.pointer_init_doc()))
-                    normal_inits.append("        %s(%s)" % (name, member.normal_init(name)))
-                    pointer_inits.append("        %s(%s)" % (name, member.pointer_init(name)))
-                    if member.should_pointer_init_free():
-                        pointer_frees.append("        free(%s);" % name)
-
-            # Regular constructor; header.
-            hdr.append(comment(2, normal_doc))
-            hdr.append("        %s(%s);" % (self.name, ", ".join(normal_args)))
-            hdr.append("")
-
-            # Regular constructor; source.
-            src.append(comment(1, normal_doc))
-            if normal_inits:
-                src.append("    %s::%s(%s):" % (self.name, self.name, ", ".join(normal_args)))
-                src.append(",\n".join(normal_inits))
-                src.append("    {}")
-            else:
-                src.append("    %s::%s(%s) {" % (self.name, self.name, ", ".join(normal_args)))
-                src.append("    }")
-            src.append("")
-
-            if normal_args != pointer_args:
-                # Pointer constructor; header.
-                hdr.append(comment(2, pointer_doc))
-                hdr.append("        %s(%s);" % (self.name, ", ".join(pointer_args)))
+                hdr.append(comment(2, [member.member_doc()]))
+                hdr.append("        %s %s;" % (member.member_type(), member.member_name()))
                 hdr.append("")
 
-                # Pointer constructor; source.
-                src.append(comment(1, pointer_doc))
-                if pointer_inits:
-                    src.append("    %s::%s(%s):" % (self.name, self.name, ", ".join(pointer_args)))
-                    src.append(",\n".join(pointer_inits))
-                    src.append("    {")
-                    src.extend(pointer_frees)
-                    src.append("    }")
-                else:
-                    src.append("    %s::%s(%s)" % (self.name, self.name, ", ".join(pointer_args)))
-                    src.append("    {}")
-                src.append("")
+            # Constructor(s).
+            need_more_cons = True
+            num_opt_total = 0
+            while need_more_cons:
+                need_more_cons = False
+                num_opt = num_opt_total
+                num_opt_total += 1
 
-        # Destructor.
-        hdr.append(comment(2, ["Default destructor for %s." % self.name]))
-        hdr.append("        virtual ~%s() = default;" % (self.name))
-        hdr.append("")
-
-        # Push functions for vectors.
-        for member in self.members:
-            if member.is_vector():
-                doc = [
-                    "Appends to %s vector. Returns reference to this to allow chaining." % member.push_name(),
-                    "@param %s Value to push." % member.push_name(),
-                    "@return this, to allow chaining."
+                normal_args = []
+                normal_doc = ["Constructor for %s." % self.name]
+                normal_inits = []
+                pointer_args = []
+                pointer_doc = [
+                    "Constructor for %s, intended to be used from YACC only. This version:" % self.name,
+                    " - uses char* for strings and bare pointers instead of std::shared_ptr<> encapsulations for inputs;",
+                    " - calls free() on strings passed to it after constructing std::string instances."
                 ]
+                pointer_inits = []
+                pointer_frees = []
+                for member in self.members:
+                    use_default = True
+                    if member.construct_always():
+                        use_default = False
+                    elif member.construct_optional():
+                        if num_opt > 0:
+                            use_default = False
+                            num_opt -= 1
+                        else:
+                            need_more_cons = True
 
-                hdr.append(comment(2, doc))
-                hdr.append("        %s *push_%s(%s %s);" % (self.name, member.push_name(), member.push_type(), member.push_name()))
+                    if not use_default:
+                        name = member.init_name()
+                        normal_args.append("%s %s" % (member.normal_init_type(), name))
+                        pointer_args.append("%s %s" % (member.pointer_init_type(), name))
+                        normal_doc.append("@param %s %s" % (name, member.normal_init_doc()))
+                        pointer_doc.append("@param %s %s" % (name, member.pointer_init_doc()))
+                        normal_inits.append("        %s(%s)" % (name, member.normal_init(name)))
+                        pointer_inits.append("        %s(%s)" % (name, member.pointer_init(name)))
+                        if member.should_pointer_init_free():
+                            pointer_frees.append("        free(%s);" % name)
+
+                # Regular constructor; header.
+                hdr.append(comment(2, normal_doc))
+                hdr.append("        %s(%s);" % (self.name, ", ".join(normal_args)))
                 hdr.append("")
 
-                src.append(comment(1, doc))
-                src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.push_name(), member.push_type(), member.push_name()))
-                src.append("        this->%s.push_back(%s);" % (member.member_name(), member.push_name()));
-                src.append("        return this;")
-                src.append("    }")
+                # Regular constructor; source.
+                src.append(comment(1, normal_doc))
+                if normal_inits:
+                    src.append("    %s::%s(%s):" % (self.name, self.name, ", ".join(normal_args)))
+                    src.append(",\n".join(normal_inits))
+                    src.append("    {}")
+                else:
+                    src.append("    %s::%s(%s) {" % (self.name, self.name, ", ".join(normal_args)))
+                    src.append("    }")
                 src.append("")
 
-                if member.is_shared_ptr():
-                    hdr.append(comment(2, doc))
-                    hdr.append("        %s *push_%s(%s %s);" % (self.name, member.push_name(), member.push_type_ptr(), member.push_name()))
+                if normal_args != pointer_args:
+                    # Pointer constructor; header.
+                    hdr.append(comment(2, pointer_doc))
+                    hdr.append("        %s(%s);" % (self.name, ", ".join(pointer_args)))
                     hdr.append("")
 
-                    src.append(comment(1, doc))
-                    src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.push_name(), member.push_type_ptr(), member.push_name()))
-                    src.append("        this->%s.push_back(%s);" % (member.member_name(), member.push_make_shared(member.push_name())));
-                    src.append("        return this;")
-                    src.append("    }")
+                    # Pointer constructor; source.
+                    src.append(comment(1, pointer_doc))
+                    if pointer_inits:
+                        src.append("    %s::%s(%s):" % (self.name, self.name, ", ".join(pointer_args)))
+                        src.append(",\n".join(pointer_inits))
+                        src.append("    {")
+                        src.extend(pointer_frees)
+                        src.append("    }")
+                    else:
+                        src.append("    %s::%s(%s)" % (self.name, self.name, ", ".join(pointer_args)))
+                        src.append("    {}")
                     src.append("")
 
-                if member.has_vec_push():
+            # Destructor.
+            hdr.append(comment(2, ["Default destructor for %s." % self.name]))
+            hdr.append("        virtual ~%s() = default;" % (self.name))
+            hdr.append("")
+
+            # Push functions for vectors.
+            for member in self.members:
+                if member.is_vector():
                     doc = [
-                        "Appends %s vector by another vector. Returns reference to this to allow chaining." % member.vec_push_name(),
-                        "@param %s Vector to push." % member.vec_push_name(),
+                        "Appends to %s vector. Returns reference to this to allow chaining." % member.push_name(),
+                        "@param %s Value to push." % member.push_name(),
                         "@return this, to allow chaining."
                     ]
 
                     hdr.append(comment(2, doc))
-                    hdr.append("        %s *push_%s(%s %s);" % (self.name, member.vec_push_name(), member.vec_push_type(), member.vec_push_name()))
+                    hdr.append("        %s *push_%s(%s %s);" % (self.name, member.push_name(), member.push_type(), member.push_name()))
                     hdr.append("")
 
                     src.append(comment(1, doc))
-                    src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.vec_push_name(), member.vec_push_type(), member.vec_push_name()))
-                    src.append("        this->%s.insert(this->%s.end(), %s.begin(), %s.end());" % (member.member_name(), member.member_name(), member.vec_push_name(), member.vec_push_name()))
+                    src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.push_name(), member.push_type(), member.push_name()))
+                    src.append("        this->%s.push_back(%s);" % (member.member_name(), member.push_name()));
                     src.append("        return this;")
                     src.append("    }")
                     src.append("")
 
-        # Conversion to string (for debugging).
-        doc = ["Converts to a \"ClassName(...)\" string for debugging."]
+                    if member.is_shared_ptr():
+                        hdr.append(comment(2, doc))
+                        hdr.append("        %s *push_%s(%s %s);" % (self.name, member.push_name(), member.push_type_ptr(), member.push_name()))
+                        hdr.append("")
 
-        hdr.append(comment(2, doc))
-        hdr.append("        virtual operator std::string() const override;")
-        hdr.append("")
+                        src.append(comment(1, doc))
+                        src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.push_name(), member.push_type_ptr(), member.push_name()))
+                        src.append("        this->%s.push_back(%s);" % (member.member_name(), member.push_make_shared(member.push_name())));
+                        src.append("        return this;")
+                        src.append("    }")
+                        src.append("")
 
-        src.append(comment(1, doc))
-        src.append("    %s::operator std::string() const {" % self.name)
-        src.append("        std::ostringstream os;")
-        src.append("        os << \"%s(\";" % self.name)
-        for i in range(len(self.members)):
-            src.extend(self.members[i].debug_to_ostream())
-            if i < len(self.members) - 1:
-                src.append("        os << \", \";")
-        src.append("        os << \")\";")
-        src.append("        return os.str();")
-        src.append("    }")
-        src.append("")
+                    if member.has_vec_push():
+                        doc = [
+                            "Appends %s vector by another vector. Returns reference to this to allow chaining." % member.vec_push_name(),
+                            "@param %s Vector to push." % member.vec_push_name(),
+                            "@return this, to allow chaining."
+                        ]
 
-        # Custom function declarations.
-        if not self.children:
-            hdr.extend(header_leaf);
+                        hdr.append(comment(2, doc))
+                        hdr.append("        %s *push_%s(%s %s);" % (self.name, member.vec_push_name(), member.vec_push_type(), member.vec_push_name()))
+                        hdr.append("")
+
+                        src.append(comment(1, doc))
+                        src.append("    %s *%s::push_%s(%s %s) {" % (self.name, self.name, member.vec_push_name(), member.vec_push_type(), member.vec_push_name()))
+                        src.append("        this->%s.insert(this->%s.end(), %s.begin(), %s.end());" % (member.member_name(), member.member_name(), member.vec_push_name(), member.vec_push_name()))
+                        src.append("        return this;")
+                        src.append("    }")
+                        src.append("")
+
+            # Conversion to string (for debugging).
+            doc = ["Converts to a \"ClassName(...)\" string for debugging."]
+
+            hdr.append(comment(2, doc))
+            hdr.append("        virtual operator std::string() const override;")
             hdr.append("")
 
-        hdr.append("    };")
-        hdr.append("")
+            src.append(comment(1, doc))
+            src.append("    %s::operator std::string() const {" % self.name)
+            src.append("        std::ostringstream os;")
+            src.append("        os << \"%s(\";" % self.name)
+            for i in range(len(self.members)):
+                src.extend(self.members[i].debug_to_ostream())
+                if i < len(self.members) - 1:
+                    src.append("        os << \", \";")
+            src.append("        os << \")\";")
+            src.append("        return os.str();")
+            src.append("    }")
+            src.append("")
+
+            # Custom function declarations.
+            if not self.children:
+                hdr.extend(header_leaf);
+                hdr.append("")
+
+            hdr.append("    };")
+            hdr.append("")
+
+
         for c in self.children:
             h, s = c.generate(properties, header_leaf)
             hdr.append(h)
@@ -406,7 +421,7 @@ header_leaf = []
 header_foot = []
 source_head = []
 source_foot = []
-toplevel = []
+toplevel = Class(None, None)
 for i, line in data:
     try:
         line_nr = i + 1
@@ -438,8 +453,8 @@ for i, line in data:
             if indent % 4:
                 raise ValueError("Indent not multiple of four spaces")
             indent //= 4
-            class_list = toplevel
-            parent = None
+            class_list = toplevel.children
+            parent = toplevel
             for _ in range(indent):
                 if not class_list:
                     raise ValueError("Wrong indent, missing parent class")
@@ -468,14 +483,9 @@ for i, line in data:
     except:
         raise ValueError("On line %d: %s" % (line_nr, line))
 
+toplevel.name = properties["derive"]
 
-hdr = []
-src = []
-for cls in toplevel:
-    h, s = cls.generate(properties, header_leaf)
-    hdr.append(h)
-    src.append(s)
-
+hdr, src = toplevel.generate(properties, header_leaf)
 
 s = []
 s.extend(header_head)
@@ -483,10 +493,71 @@ s.append("")
 s.append("    /*")
 s.append("     * Forward declarations for all classes defined here.")
 s.append("     */")
-for cls in toplevel:
-    s.append(cls.classlist())
+s.append(toplevel.classlist())
 s.append("")
-s.extend(hdr)
+s.append(hdr)
+s.append("")
+s.append("    /**")
+s.append("     * Base type for a parse/compile transformation of an AST built from the")
+s.append("     * nodes described above. The default implementation traverses through")
+s.append("     * the AST, replacing nodes with the values returned by recursive calls,")
+s.append("     * which by default return themselves. Stateful traversal can be done by")
+s.append("     * adding variables when subclassing; recursive state can be saved by")
+s.append("     * copying the transformation object, making the appropriate changes,")
+s.append("     * and then calling apply() for child nodes manually using the copy of")
+s.append("     * the object.")
+s.append("     */")
+s.append("    class Transformation {")
+s.append("    public:")
+s.append("")
+s.append("        /**")
+s.append("         * Default constructor.")
+s.append("         */")
+s.append("        Transformation() = default;")
+s.append("")
+s.append("        /**")
+s.append("         * Default destructor.")
+s.append("         */")
+s.append("        virtual ~Transformation() = default;")
+s.append("")
+s.append("        /**")
+s.append("         * Applies this transformation to the given node, using RTTI to figure")
+s.append("         * out which type of node it is. The returned pointer must either be")
+s.append("         * newly allocated or must point to node.")
+s.append("         * @param node Node to apply the transformation to.")
+s.append("         * @return Replacement for the given node.")
+s.append("         */")
+s.append("        template <class T>")
+s.append("        std::shared_ptr<T> apply(std::shared_ptr<T> node) {")
+s.append("            return dynamic_cast<std::shared_ptr<T>>(this->apply_without_cast(node));")
+s.append("        }")
+s.append("")
+s.append("    protected:")
+s.append("")
+s.append("        /**")
+s.append("         * Same as apply(), but without dynamic typecast to the given input")
+s.append("         * type.")
+s.append("         * @param node Node to apply the transformation to.")
+s.append("         * @return Replacement for the given node.")
+s.append("         */")
+s.append("        virtual std::shared_ptr<Node> apply_without_cast(std::shared_ptr<Node> node);")
+s.append("")
+for cls in toplevel.iter_leaves():
+    s.append("        /**")
+    s.append("         * Apply to %s object." % cls.name)
+    s.append("         * @param node %s to apply the transformation to." % cls.name)
+    s.append("         * @return Replacement for the given %s." % cls.name)
+    s.append("         */")
+    s.append("        virtual std::shared_ptr<%s> apply_to(std::shared_ptr<%s> node);" % (cls.name, cls.name))
+    s.append("")
+s.append("        /**")
+s.append("         * Called when an unknown type of object is passed to apply.")
+s.append("         * @param node Node to apply the transformation to.")
+s.append("         * @return Replacement for the given node.")
+s.append("         */")
+s.append("        virtual std::shared_ptr<Node> apply_to_unknown(std::shared_ptr<Node> node);")
+s.append("")
+s.append("    };")
 s.append("")
 s.extend(header_foot)
 s.append("")
@@ -497,8 +568,40 @@ with open(properties["header"], "w") as f:
 s = []
 s.extend(source_head)
 s.append("")
-s.extend(src)
+s.append(src)
 s.append("")
+s.append("    /**")
+s.append("     * Same as apply(), but without dynamic typecast to the given input")
+s.append("     * type.")
+s.append("     * @param node Node to apply the transformation to.")
+s.append("     * @return Replacement for the given node.")
+s.append("     */")
+s.append("    std::shared_ptr<Node> Transformation::apply_without_cast(std::shared_ptr<Node> node) {")
+s.append("        if (!node) return node;")
+for cls in toplevel.iter_leaves():
+    s.append("        if %-48s return this->apply_to(std::dynamic_pointer_cast<%s>(node));" % ("(typeid(*node) == typeid(%s))" % cls.name, cls.name))
+s.append("        return apply_to_unknown(node);")
+s.append("    }")
+s.append("")
+for cls in toplevel.iter_leaves():
+    s.append("    /**")
+    s.append("     * Apply to %s object." % cls.name)
+    s.append("     * @param node %s to apply the transformation to." % cls.name)
+    s.append("     * @return Replacement for the given %s." % cls.name)
+    s.append("     */")
+    s.append("    std::shared_ptr<%s> Transformation::apply_to(std::shared_ptr<%s> node) {" % (cls.name, cls.name))
+    s.append("        return node;")
+    s.append("    }")
+    s.append("")
+s.append("    /**")
+s.append("     * Called when an unknown type of object is passed to apply.")
+s.append("     * @param node Node to apply the transformation to.")
+s.append("     * @return Replacement for the given node.")
+s.append("     */")
+s.append("    std::shared_ptr<Node> Transformation::apply_to_unknown(std::shared_ptr<Node> node) {")
+s.append("        return node;")
+s.append("    }")
+
 s.extend(source_foot)
 s.append("")
 s = "\n".join(s)

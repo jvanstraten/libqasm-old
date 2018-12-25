@@ -1,4 +1,6 @@
 %option yylineno
+%option nounput
+
 %{
     #include "cqasm2/ast/ast.hpp"
     #include "parser.hpp"
@@ -22,7 +24,6 @@
         return yytext[0]
     #define DELETE LOCATION_STEP
 %}
-
 
 %x MULTILINE_COMMENT
 %x STRING

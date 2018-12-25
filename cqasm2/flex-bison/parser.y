@@ -4,7 +4,7 @@
     #include <iostream>
     #include <string.h>
     #include "cqasm2/ast/ast.hpp"
-    int yyerror(char const *s);
+    void yyerror(char const *s);
     extern int yylex(void);
     extern int yylineno;
     bool yyrecovered;
@@ -374,6 +374,6 @@ Program         : OptNewline VERSION Newline StatementList OptNewline           
 
 
 %%
-int yyerror(char const *s) {
+void yyerror(char const *s) {
     printf("On %d:%d: %s\n", yylloc.first_line, yylloc.first_column, s);
 }
