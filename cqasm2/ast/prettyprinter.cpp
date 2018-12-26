@@ -134,12 +134,12 @@ namespace cqasm2 { namespace ast {
     PrettyPrinter::PrettyPrinter(std::ostream &os) : indent_width(0), min_prec(0), os(os) {
     }
 
-    std::shared_ptr<QubitType> PrettyPrinter::apply_to(std::shared_ptr<QubitType> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<QubitType> node) {
         this->os << "qubit";
         return node;
     }
 
-    std::shared_ptr<NumericType> PrettyPrinter::apply_to(std::shared_ptr<NumericType> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<NumericType> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         if (node->has_sign) {
@@ -182,42 +182,42 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<FloatType> PrettyPrinter::apply_to(std::shared_ptr<FloatType> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<FloatType> node) {
         this->os << "float";
         return node;
     }
 
-    std::shared_ptr<DoubleType> PrettyPrinter::apply_to(std::shared_ptr<DoubleType> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<DoubleType> node) {
         this->os << "double";
         return node;
     }
 
-    std::shared_ptr<DecLiteral> PrettyPrinter::apply_to(std::shared_ptr<DecLiteral> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<DecLiteral> node) {
         this->os << node->val;
         return node;
     }
 
-    std::shared_ptr<HexLiteral> PrettyPrinter::apply_to(std::shared_ptr<HexLiteral> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<HexLiteral> node) {
         this->os << node->val;
         return node;
     }
 
-    std::shared_ptr<BinLiteral> PrettyPrinter::apply_to(std::shared_ptr<BinLiteral> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<BinLiteral> node) {
         this->os << node->val;
         return node;
     }
 
-    std::shared_ptr<FloatLiteral> PrettyPrinter::apply_to(std::shared_ptr<FloatLiteral> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<FloatLiteral> node) {
         this->os << node->val;
         return node;
     }
 
-    std::shared_ptr<NamedLiteral> PrettyPrinter::apply_to(std::shared_ptr<NamedLiteral> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<NamedLiteral> node) {
         this->os << node->name;
         return node;
     }
 
-    std::shared_ptr<ArrayLiteral> PrettyPrinter::apply_to(std::shared_ptr<ArrayLiteral> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<ArrayLiteral> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.os << "{";
@@ -226,12 +226,12 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Identifier> PrettyPrinter::apply_to(std::shared_ptr<Identifier> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Identifier> node) {
         this->os << node->name;
         return node;
     }
 
-    std::shared_ptr<ResourceRef> PrettyPrinter::apply_to(std::shared_ptr<ResourceRef> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<ResourceRef> node) {
         if (node->res) {
             this->os << node->res->unique;
         } else {
@@ -240,7 +240,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<MacroParamRef> PrettyPrinter::apply_to(std::shared_ptr<MacroParamRef> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<MacroParamRef> node) {
         if (node->macro) {
             this->os << node->macro->name;
         } else {
@@ -249,7 +249,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<MacroIterRef> PrettyPrinter::apply_to(std::shared_ptr<MacroIterRef> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<MacroIterRef> node) {
         if (node->macro) {
             this->os << node->macro->iter;
         } else {
@@ -258,7 +258,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<LabelRef> PrettyPrinter::apply_to(std::shared_ptr<LabelRef> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<LabelRef> node) {
         if (node->lbl) {
             this->os << node->lbl->unique;
         } else {
@@ -267,7 +267,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Subscript> PrettyPrinter::apply_to(std::shared_ptr<Subscript> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Subscript> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = 0;
         pp.safe_apply(node->expr);
@@ -275,7 +275,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Indexation> PrettyPrinter::apply_to(std::shared_ptr<Indexation> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Indexation> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = 0;
         pp.safe_apply(node->expr);
@@ -286,7 +286,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Operation> PrettyPrinter::apply_to(std::shared_ptr<Operation> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Operation> node) {
         PrettyPrinter pp = *this;
         if (node->oper.prec >= pp.min_prec) {
             pp.os << "(";
@@ -326,7 +326,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Function> PrettyPrinter::apply_to(std::shared_ptr<Function> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Function> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.os << node->name << "(";
@@ -335,7 +335,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<TypeCast> PrettyPrinter::apply_to(std::shared_ptr<TypeCast> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<TypeCast> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = 0;
         pp.os << "(";
@@ -345,7 +345,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<ShiftCast> PrettyPrinter::apply_to(std::shared_ptr<ShiftCast> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<ShiftCast> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         if (node->dir) {
@@ -360,12 +360,12 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<ErroneousExpression> PrettyPrinter::apply_to(std::shared_ptr<ErroneousExpression> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<ErroneousExpression> node) {
         this->os << "$ERROR$";
         return node;
     }
 
-    std::shared_ptr<MatrixLiteral1> PrettyPrinter::apply_to(std::shared_ptr<MatrixLiteral1> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<MatrixLiteral1> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.os << "[";
@@ -374,7 +374,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<MatrixLiteral2> PrettyPrinter::apply_to(std::shared_ptr<MatrixLiteral2> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<MatrixLiteral2> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.indent_width += 1;
@@ -388,7 +388,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<StringLiteral> PrettyPrinter::apply_to(std::shared_ptr<StringLiteral> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<StringLiteral> node) {
         this->os << "\"";
         for (const char &c : node->data) {
             switch (c) {
@@ -403,12 +403,12 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<JsonLiteral> PrettyPrinter::apply_to(std::shared_ptr<JsonLiteral> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<JsonLiteral> node) {
         this->os << "{|" << node->data << "|}";
         return node;
     }
 
-    std::shared_ptr<ExpressionList> PrettyPrinter::apply_to(std::shared_ptr<ExpressionList> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<ExpressionList> node) {
         for (auto it = node->exprs.begin(); it != node->exprs.end();) {
             this->safe_apply(*it);
             it++;
@@ -419,7 +419,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<OperandList> PrettyPrinter::apply_to(std::shared_ptr<OperandList> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<OperandList> node) {
         for (auto it = node->opers.begin(); it != node->opers.end();) {
             this->safe_apply(*it);
             it++;
@@ -430,7 +430,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<IdentifierList> PrettyPrinter::apply_to(std::shared_ptr<IdentifierList> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<IdentifierList> node) {
         for (auto it = node->ids.begin(); it != node->ids.end();) {
             this->os << *it;
             it++;
@@ -441,7 +441,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<IndexEntry> PrettyPrinter::apply_to(std::shared_ptr<IndexEntry> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<IndexEntry> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = 0;
         pp.safe_apply(node->first);
@@ -452,7 +452,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<IndexList> PrettyPrinter::apply_to(std::shared_ptr<IndexList> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<IndexList> node) {
         for (auto it = node->ents.begin(); it != node->ents.end();) {
             this->safe_apply(*it);
             it++;
@@ -463,12 +463,12 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<StringBuilder> PrettyPrinter::apply_to(std::shared_ptr<StringBuilder> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<StringBuilder> node) {
         this->os << "$STR_BUILDER$";
         return node;
     }
 
-    std::shared_ptr<AnnotationData> PrettyPrinter::apply_to(std::shared_ptr<AnnotationData> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<AnnotationData> node) {
         this->os << node->target << " " << node->name;
         if (node->ops) {
             PrettyPrinter pp = *this;
@@ -479,12 +479,12 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<GateType> PrettyPrinter::apply_to(std::shared_ptr<GateType> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<GateType> node) {
         this->pprint_gate_type(node, node->name);
         return node;
     }
 
-    std::shared_ptr<NormalGate> PrettyPrinter::apply_to(std::shared_ptr<NormalGate> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<NormalGate> node) {
         if (node->typ) {
             this->pprint_gate(node, node->typ->name);
         } else {
@@ -493,7 +493,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<IfGoto> PrettyPrinter::apply_to(std::shared_ptr<IfGoto> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<IfGoto> node) {
         if (node->cond) {
             PrettyPrinter pp = *this;
             pp.min_prec = __INT_MAX__;
@@ -507,7 +507,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<MacroCall> PrettyPrinter::apply_to(std::shared_ptr<MacroCall> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<MacroCall> node) {
         if (!node->macro || !node->macro->unique.length()) {
             this->os << "$NONAME$";
         } else {
@@ -516,7 +516,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Pragma> PrettyPrinter::apply_to(std::shared_ptr<Pragma> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Pragma> node) {
         this->insert_indent();
         this->os << "pragma ";
         this->safe_apply(node->data);
@@ -525,7 +525,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<QubitRegister1> PrettyPrinter::apply_to(std::shared_ptr<QubitRegister1> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<QubitRegister1> node) {
         this->insert_indent();
         this->os << "qubits ";
         this->safe_apply(node->nqubits);
@@ -534,7 +534,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<ScalarResource> PrettyPrinter::apply_to(std::shared_ptr<ScalarResource> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<ScalarResource> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.insert_indent();
@@ -550,7 +550,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<ArrayResource> PrettyPrinter::apply_to(std::shared_ptr<ArrayResource> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<ArrayResource> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.insert_indent();
@@ -569,7 +569,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<LetStatement> PrettyPrinter::apply_to(std::shared_ptr<LetStatement> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<LetStatement> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.insert_indent();
@@ -582,7 +582,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Mapping> PrettyPrinter::apply_to(std::shared_ptr<Mapping> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Mapping> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.insert_indent();
@@ -593,7 +593,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Assignment> PrettyPrinter::apply_to(std::shared_ptr<Assignment> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Assignment> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.insert_indent();
@@ -606,7 +606,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<MacroDef> PrettyPrinter::apply_to(std::shared_ptr<MacroDef> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<MacroDef> node) {
         this->insert_indent();
         this->os << "def ";
         if (node->unique.length()) {
@@ -623,7 +623,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<MacroFor> PrettyPrinter::apply_to(std::shared_ptr<MacroFor> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<MacroFor> node) {
         this->insert_indent();
         this->os << "for " << node->iter << " = [";
         this->safe_apply(node->indices);
@@ -636,7 +636,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<MacroIfElse> PrettyPrinter::apply_to(std::shared_ptr<MacroIfElse> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<MacroIfElse> node) {
         PrettyPrinter pp = *this;
         pp.min_prec = __INT_MAX__;
         pp.insert_indent();
@@ -656,7 +656,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Include> PrettyPrinter::apply_to(std::shared_ptr<Include> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Include> node) {
         this->insert_indent();
         this->os << "include ";
         this->safe_apply(node->fname);
@@ -665,7 +665,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Subcircuit> PrettyPrinter::apply_to(std::shared_ptr<Subcircuit> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Subcircuit> node) {
         PrettyPrinter pp = *this;
         pp.indent_width -= 1;
         pp.min_prec = __INT_MAX__;
@@ -682,7 +682,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Label> PrettyPrinter::apply_to(std::shared_ptr<Label> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Label> node) {
         PrettyPrinter pp = *this;
         pp.indent_width -= 1;
         pp.min_prec = __INT_MAX__;
@@ -699,7 +699,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Bundle> PrettyPrinter::apply_to(std::shared_ptr<Bundle> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Bundle> node) {
         this->insert_indent();
         if (node->gates.size() == 1 && !node->annots.size()) {
             this->safe_apply(node->gates.at(0));
@@ -721,12 +721,12 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<ErroneousStatement> PrettyPrinter::apply_to(std::shared_ptr<ErroneousStatement> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<ErroneousStatement> node) {
         this->os << "$ERROR$";
         return node;
     }
 
-    std::shared_ptr<Block> PrettyPrinter::apply_to(std::shared_ptr<Block> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Block> node) {
         PrettyPrinter pp = *this;
         pp.indent_width += 1;
         for (auto it = node->stmts.begin(); it != node->stmts.end(); it++) {
@@ -735,7 +735,7 @@ namespace cqasm2 { namespace ast {
         return node;
     }
 
-    std::shared_ptr<Program> PrettyPrinter::apply_to(std::shared_ptr<Program> node) {
+    std::shared_ptr<Node> PrettyPrinter::apply_to(std::shared_ptr<Program> node) {
         this->os << node->version << std::endl;
         this->os << std::endl;
         this->safe_apply(node->blk);

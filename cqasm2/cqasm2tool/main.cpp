@@ -13,6 +13,7 @@ int main(int argc, const char **argv) {
         if (p) {
             std::cout << std::string(*p) << std::endl;
             std::cout << "=================" << std::endl;
+            p = IfGotoReducer().apply(p);
             PrettyPrinter(std::cout).apply(p);
         }
         exit(0);

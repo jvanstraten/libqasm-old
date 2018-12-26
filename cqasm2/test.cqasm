@@ -3,5 +3,7 @@ int<64> reg64[16]
 int<32> reg32[32]
 pragma com exclusive: reg32[0], reg64[0]
 pragma com exclusive: reg32[1], reg64[0]
-pragma com exclusive: reg32[2], reg64[1]"
+pragma com exclusive: reg32[2], reg64[1]
 pragma com exclusive: reg32[3], reg64[1]
+c-c-x a, b, c
+if a || b goto c

@@ -1,0 +1,6 @@
+
+Transformation:
+
+Actual transformations:
+ - reduce IfGoto to NormalGate. This should be one of the first steps because
+   it's easy!

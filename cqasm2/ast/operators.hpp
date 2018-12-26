@@ -11,7 +11,7 @@ namespace cqasm2 { namespace ast {
     /**
      * Operator description.
      */
-    typedef struct {
+    struct Operator {
 
         /**
          * Number of operands for inline operators.
@@ -49,37 +49,42 @@ namespace cqasm2 { namespace ast {
          */
         operator std::string() const;
 
-    } operator_t;
+        /**
+         * Checks equality between two operators.
+         */
+        bool operator==(const Operator &x) const;
+
+    };
 
     /**
      * Operators.
      */
     namespace operators {
-        extern const operator_t NEG;
-        extern const operator_t NOT;
-        extern const operator_t INV;
-        extern const operator_t POW;
-        extern const operator_t MUL;
-        extern const operator_t DIV;
-        extern const operator_t IDIV;
-        extern const operator_t MOD;
-        extern const operator_t ADD;
-        extern const operator_t SUB;
-        extern const operator_t SHL;
-        extern const operator_t SHR;
-        extern const operator_t CGT;
-        extern const operator_t CLT;
-        extern const operator_t CGE;
-        extern const operator_t CLE;
-        extern const operator_t CEQ;
-        extern const operator_t CNE;
-        extern const operator_t AND;
-        extern const operator_t XOR;
-        extern const operator_t OR;
-        extern const operator_t LAND;
-        extern const operator_t LXOR;
-        extern const operator_t LOR;
-        extern const operator_t SLCT;
+        extern const Operator NEG;
+        extern const Operator NOT;
+        extern const Operator INV;
+        extern const Operator POW;
+        extern const Operator MUL;
+        extern const Operator DIV;
+        extern const Operator IDIV;
+        extern const Operator MOD;
+        extern const Operator ADD;
+        extern const Operator SUB;
+        extern const Operator SHL;
+        extern const Operator SHR;
+        extern const Operator CGT;
+        extern const Operator CLT;
+        extern const Operator CGE;
+        extern const Operator CLE;
+        extern const Operator CEQ;
+        extern const Operator CNE;
+        extern const Operator AND;
+        extern const Operator XOR;
+        extern const Operator OR;
+        extern const Operator LAND;
+        extern const Operator LXOR;
+        extern const Operator LOR;
+        extern const Operator SLCT;
     }
 
 }}

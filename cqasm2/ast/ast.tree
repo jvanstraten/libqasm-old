@@ -117,28 +117,33 @@ Operand:
                 / used in.
 
             ResourceRef: \
-                    &rc Resource res Resolved resource. |\
-                    &ro Identifier id Original identifier that was used for this reference, if any.
+                    &c Resource res Resolved resource. |\
+                    &o Identifier id Original identifier that was used for this reference, if any.
                 / Represents an identifier that was resolved to a resource. When
                 / printing, the uniquified name of the resource is used.
 
             MacroParamRef: \
-                    &rc MacroDef macro Macro definition this parameter was resolved to. |\
+                    &c MacroDef macro Macro definition this parameter was resolved to. |\
                     c int param Parameter index. |\
-                    &ro Identifier id Original identifier that was used for this reference, if any.
+                    &o Identifier id Original identifier that was used for this reference, if any.
                 / Represents an identifier that was resolved to one of the
                 / parameters of a macro def statement.
 
             MacroIterRef: \
-                    &rc MacroFor macro For loop that this parameter was resolved to. |\
-                    &ro Identifier id Original identifier that was used for this reference, if any.
+                    &c MacroFor macro For loop that this parameter was resolved to. |\
+                    &o Identifier id Original identifier that was used for this reference, if any.
                 / Represents an identifier that was resolved to the loop variable
                 / of a macro for statement.
 
             LabelRef: \
-                    &rc Label lbl Label that this identifier was resolved to. |\
-                    &ro Identifier id Original identifier that was used for this reference, if any.
+                    &c Label lbl Label that this identifier was resolved to. |\
+                    &o Identifier id Original identifier that was used for this reference, if any.
                 / Represents an identifier that was resolved to a label.
+
+            MapRef: \
+                    &c Mapping map Mapping that this identifier was resolved to. |\
+                    &o Identifier id Original identifier that was used for this reference, if any.
+                / Represents an identifier that was resolved to a mapping.
 
         Subscript: \
                 &rc Expression expr Expression to disambiguate with subscript notation. |\
@@ -153,7 +158,7 @@ Operand:
             / Represents an index notation, i.e. of the form "a[b]".
 
         Operation: \
-                sc operator_t oper Operator description. |\
+                sc Operator oper Operator description. |\
                 &rc Expression op1 Operand 1. |\
                 &ro Expression op2 Operand 2, or null if unary. |\
                 &ro Expression op3 Operand 3, or null if unary/binary.
@@ -257,13 +262,13 @@ Gate:
             / Represents the syntactic sugar if-goto notation for branches.
 
     ### JsonGate: \
-    ###         &rc NormalGate gate Gate description from the source code. |\
-    ###         &rc nlohmann::json json JSON object from the definition file that describes this gate.
+    ###         &c nlohmann::json json JSON object from the definition file that describes this gate. |\
+    ###         &rc NormalGate gate Gate description from the source code.
     ###     / Represents a gate that was resolved to the JSON specification.
 
     MacroCall: \
-            &rc NormalGate gate Gate description from the source code. |\
-            &rc MacroDef macro Macro that this gate was resolved to.
+            &c MacroDef macro Macro that this gate was resolved to. |\
+            &rc NormalGate gate Gate description from the source code.
         / Represents a call to a macro.
 
 Statement: \

@@ -10,5 +10,6 @@
 #include "node.hpp"
 #include "ast.gen.hpp"
 #include "prettyprinter.hpp"
+#include "ifgotoreducer.hpp"
 
 #endif
